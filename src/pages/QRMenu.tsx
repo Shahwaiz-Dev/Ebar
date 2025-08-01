@@ -46,6 +46,20 @@ export const QRMenuPage = () => {
   const { data: selectedBar, isLoading, error } = useBeachBar(barId || '');
 
   useEffect(() => {
+    console.log('QRMenuPage: barId from URL:', barId);
+    console.log('QRMenuPage: isLoading:', isLoading);
+    console.log('QRMenuPage: error:', error);
+    console.log('QRMenuPage: selectedBar data:', selectedBar);
+
+    // Auto-detect if user is on mobile (QR code scan)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile && spotId && selectedBar) {
+      // Show a welcome message for QR code users
+      console.log(`Welcome to ${selectedBar.name}! You're at spot ${spotId}`);
+    }
+  }, [barId, isLoading, error, selectedBar, spotId]);
+
+  useEffect(() => {
     // Auto-detect if user is on mobile (QR code scan)
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile && spotId && selectedBar) {
