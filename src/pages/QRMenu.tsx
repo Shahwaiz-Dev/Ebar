@@ -59,7 +59,10 @@ export const QRMenuPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
         <main className="pt-24 pb-16">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Loading...</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">Loading Menu...</h1>
+            <div className="flex justify-center items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
           </div>
         </main>
         <Footer />
@@ -72,8 +75,11 @@ export const QRMenuPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
         <main className="pt-24 pb-16">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Bar not found</h1>
-            <Button onClick={() => navigate('/search')}>Back to Search</Button>
+            <h1 className="text-2xl font-bold text-destructive mb-4">Menu Not Found</h1>
+            <p className="text-muted-foreground mb-6">
+              The menu you are looking for does not exist or has been moved.
+            </p>
+            <Button onClick={() => navigate('/')}>Go to Homepage</Button>
           </div>
         </main>
         <Footer />
@@ -222,27 +228,33 @@ export const QRMenuPage = () => {
 
                   {/* Menu Items */}
                   <div className="space-y-4">
-                    {selectedBar.menuItems
-                      .filter(item => item.category === activeTab && item.available)
-                      .map((item) => (
-                        <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold">{item.name}</h3>
-                              <Badge variant="secondary">{item.category}</Badge>
+                    {selectedBar.menuItems && selectedBar.menuItems.length > 0 ? (
+                      selectedBar.menuItems
+                        .filter(item => item.category === activeTab && item.available)
+                        .map((item) => (
+                          <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold">{item.name}</h3>
+                                <Badge variant="secondary">{item.category}</Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{item.description}</p>
+                              <p className="text-lg font-bold text-primary mt-1">${item.price}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">{item.description}</p>
-                            <p className="text-lg font-bold text-primary mt-1">${item.price}</p>
+                            <Button
+                              size="sm"
+                              onClick={() => addToCart(item)}
+                              className="ml-4"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => addToCart(item)}
-                            className="ml-4"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                        )))
+                     : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No menu items available for this category.</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -16,7 +16,7 @@ import DashboardPage from "./pages/Dashboard";
 import FavoritesPage from "./pages/Favorites";
 import BookingHistoryPage from "./pages/BookingHistory";
 import NotFound from "./pages/NotFound";
-import { SeedDataButton } from "@/components/SeedDataButton";
+
 
 const queryClient = new QueryClient();
 
@@ -43,7 +43,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-        <SeedDataButton />
+        
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
