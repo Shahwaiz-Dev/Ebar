@@ -1,0 +1,80 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  getBookingsByUser, 
+  getBookingsByBar,
+  createBooking,
+  updateBookingStatus,
+  Booking
+} from '@/lib/firestore';
+import { toast } from 'sonner';
+
+// Query keys
+export const bookingKeys = {
+  all: ['bookings'] as const,
+  lists: () => [...bookingKeys.all, 'list'] as const,
+  list: (filters: string) => [...bookingKeys.lists(), { filters }] as const,
+  details: () => [...bookingKeys.all, 'detail'] as const,
+  detail: (id: string) => [...bookingKeys.details(), id] as const,
+  user: (userId: string) => [...bookingKeys.all, 'user', userId] as const,
+  bar: (barId: string) => [...bookingKeys.all, 'bar', barId] as const,
+};
+
+// Get bookings by user
+export const useBookingsByUser = (userId: string) => {
+  return useQuery({
+    queryKey: bookingKeys.user(userId),
+    queryFn: () => getBookingsByUser(userId),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+// Get bookings by bar
+export const useBookingsByBar = (barId: string) => {
+  return useQuery({
+    queryKey: bookingKeys.bar(barId),
+    queryFn: () => getBookingsByBar(barId),
+    enabled: !!barId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+// Create booking mutation
+export const useCreateBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createBooking,
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch bookings lists
+      queryClient.invalidateQueries({ queryKey: bookingKeys.user(variables.userId) });
+      queryClient.invalidateQueries({ queryKey: bookingKeys.bar(variables.barId) });
+      
+      toast.success('Booking created successfully!');
+    },
+    onError: (error) => {
+      console.error('Error creating booking:', error);
+      toast.error('Failed to create booking. Please try again.');
+    },
+  });
+};
+
+// Update booking status mutation
+export const useUpdateBookingStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: Booking['status'] }) =>
+      updateBookingStatus(id, status),
+    onSuccess: (data, variables) => {
+      // Invalidate all booking queries to refetch
+      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
+      
+      toast.success(`Booking ${variables.status} successfully!`);
+    },
+    onError: (error) => {
+      console.error('Error updating booking status:', error);
+      toast.error('Failed to update booking status. Please try again.');
+    },
+  });
+}; 

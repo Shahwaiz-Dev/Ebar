@@ -1,0 +1,215 @@
+/* stylelint-disable at-rule-no-unknown */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Beach Tropical Color Palette */
+    --background: 220 50% 98%;
+    --foreground: 215 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* Ocean Blue Primary */
+    --primary: 200 95% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 200 85% 55%;
+    --primary-dark: 200 100% 25%;
+
+    /* Sandy Beige Secondary */
+    --secondary: 35 45% 90%;
+    --secondary-foreground: 215 25% 15%;
+
+    --muted: 210 20% 95%;
+    --muted-foreground: 215 20% 45%;
+
+    /* Coral Accent */
+    --accent: 15 85% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 200 95% 35%;
+
+    --radius: 1rem;
+
+    /* Tropical Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(200, 95%, 35%), hsl(190, 80%, 45%));
+    --gradient-sunset: linear-gradient(135deg, hsl(25, 95%, 65%), hsl(15, 85%, 65%), hsl(200, 95%, 35%));
+    --gradient-ocean: linear-gradient(180deg, hsl(200, 95%, 35%), hsl(210, 85%, 45%));
+    --gradient-sand: linear-gradient(135deg, hsl(35, 45%, 90%), hsl(40, 35%, 85%));
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px hsl(200 95% 35% / 0.1);
+    --shadow-medium: 0 8px 30px hsl(200 95% 35% / 0.15);
+    --shadow-strong: 0 15px 40px hsl(200 95% 35% / 0.2);
+    --shadow-glow: 0 0 30px hsl(200 95% 35% / 0.3);
+
+    /* Animation */
+    --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 220 50% 98%;
+    --sidebar-foreground: 215 25% 15%;
+    --sidebar-primary: 200 95% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 95%;
+    --sidebar-accent-foreground: 215 25% 15%;
+    --sidebar-border: 210 20% 90%;
+    --sidebar-ring: 200 95% 35%;
+  }
+
+  .dark {
+    /* Dark Beach Night Theme */
+    --background: 220 30% 8%;
+    --foreground: 210 20% 90%;
+
+    --card: 220 25% 12%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 210 20% 90%;
+
+    --primary: 200 95% 45%;
+    --primary-foreground: 220 30% 8%;
+    --primary-light: 200 85% 65%;
+    --primary-dark: 200 100% 35%;
+
+    --secondary: 220 20% 15%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 220 20% 15%;
+    --muted-foreground: 215 15% 60%;
+
+    --accent: 15 85% 65%;
+    --accent-foreground: 220 30% 8%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 90%;
+
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 200 95% 45%;
+
+    /* Dark Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(200, 95%, 45%), hsl(190, 80%, 55%));
+    --gradient-sunset: linear-gradient(135deg, hsl(25, 85%, 55%), hsl(15, 75%, 55%), hsl(200, 95%, 45%));
+    --gradient-ocean: linear-gradient(180deg, hsl(200, 95%, 45%), hsl(210, 85%, 55%));
+    --gradient-sand: linear-gradient(135deg, hsl(35, 25%, 20%), hsl(40, 15%, 18%));
+
+    --sidebar-background: 220 30% 8%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 200 95% 45%;
+    --sidebar-primary-foreground: 220 30% 8%;
+    --sidebar-accent: 220 20% 15%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 200 95% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-poppins;
+  }
+
+  /* Enhanced focus styles for better accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Ensure scrollbar consistency across browsers */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  /* Webkit scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-playfair;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-sunset {
+    background: var(--gradient-sunset);
+  }
+  
+  .gradient-ocean {
+    background: var(--gradient-ocean);
+  }
+  
+  .gradient-sand {
+    background: var(--gradient-sand);
+  }
+  
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .shadow-medium {
+    box-shadow: var(--shadow-medium);
+  }
+  
+  .shadow-strong {
+    box-shadow: var(--shadow-strong);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  .text-gradient {
+    background: var(--gradient-sunset);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
