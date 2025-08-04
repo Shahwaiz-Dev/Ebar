@@ -37,7 +37,6 @@ export const PaymentPage = () => {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [email, setEmail] = useState('');
 
   useEffect(() => {
     const storedOrder = localStorage.getItem('currentOrder');
@@ -48,11 +47,11 @@ export const PaymentPage = () => {
     }
   }, [navigate]);
 
-  const handlePaymentSuccess = (paymentIntentId: string) => {
-    console.log('Payment successful with ID:', paymentIntentId);
+  const handlePaymentSuccess = (paymentId: string) => {
+    console.log('Payment successful with ID:', paymentId);
     
     // Send email receipt
-    sendEmailReceipt(paymentIntentId);
+    sendEmailReceipt(paymentId);
     
     // Update UI
     setIsSuccess(true);
@@ -66,12 +65,11 @@ export const PaymentPage = () => {
     setIsProcessing(false);
   };
 
-  const sendEmailReceipt = (paymentIntentId: string) => {
+  const sendEmailReceipt = (paymentId: string) => {
     // In a real application, this would call your backend API
     // to send the actual email receipt
-    console.log('Sending email receipt to:', email);
     console.log('Order details:', orderData);
-    console.log('Payment ID:', paymentIntentId);
+    console.log('Payment ID:', paymentId);
   };
 
   if (!orderData) {
@@ -106,78 +104,78 @@ export const PaymentPage = () => {
                 </p>
               </div>
 
-                                <Card className="mb-8">
-                    <CardHeader>
-                      <CardTitle>
-                        {orderData.type === 'booking' ? 'Booking Summary' : 'Order Summary'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>
+                    {orderData.type === 'booking' ? 'Booking Summary' : 'Order Summary'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Beach Bar:</span>
+                      <span>{orderData.barName}</span>
+                    </div>
+                    
+                    {orderData.type === 'booking' && (
+                      <>
                         <div className="flex justify-between items-center">
-                          <span className="font-medium">Beach Bar:</span>
-                          <span>{orderData.barName}</span>
+                          <span className="font-medium">Date:</span>
+                          <span>{orderData.date}</span>
                         </div>
-                        
-                        {orderData.type === 'booking' && (
-                          <>
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">Date:</span>
-                              <span>{orderData.date}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">Time:</span>
-                              <span>{orderData.time}</span>
-                            </div>
-                          </>
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">Time:</span>
+                          <span>{orderData.time}</span>
+                        </div>
+                      </>
+                    )}
+                    
+                    {(orderData.sunbedNumber || orderData.umbrellaNumber || orderData.spotId) && (
+                      <>
+                        {orderData.sunbedNumber && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">Sunbed Number:</span>
+                            <span>{orderData.sunbedNumber}</span>
+                          </div>
                         )}
-                        
-                        {(orderData.sunbedNumber || orderData.umbrellaNumber || orderData.spotId) && (
-                          <>
-                            {orderData.sunbedNumber && (
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium">Sunbed Number:</span>
-                                <span>{orderData.sunbedNumber}</span>
-                              </div>
-                            )}
-                            {orderData.umbrellaNumber && (
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium">Umbrella Number:</span>
-                                <span>{orderData.umbrellaNumber}</span>
-                              </div>
-                            )}
-                            {orderData.spotId && (
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium">Spot ID:</span>
-                                <span>{orderData.spotId}</span>
-                              </div>
-                            )}
-                          </>
+                        {orderData.umbrellaNumber && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">Umbrella Number:</span>
+                            <span>{orderData.umbrellaNumber}</span>
+                          </div>
                         )}
-                        
-                        <Separator />
-                        <div className="space-y-2">
-                          {orderData.items.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center">
-                              <span>
-                                {item.name} 
-                                {item.quantity && ` × ${item.quantity}`}
-                                {item.type && ` (${item.type})`}
-                              </span>
-                              <span>
-                                ${item.quantity ? item.price * item.quantity : item.price}
-                              </span>
-                            </div>
-                          ))}
+                        {orderData.spotId && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">Spot ID:</span>
+                            <span>{orderData.spotId}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    <Separator />
+                    <div className="space-y-2">
+                      {orderData.items.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center">
+                          <span>
+                            {item.name} 
+                            {item.quantity && ` × ${item.quantity}`}
+                            {item.type && ` (${item.type})`}
+                          </span>
+                          <span>
+                            ${item.quantity ? item.price * item.quantity : item.price}
+                          </span>
                         </div>
-                        <Separator />
-                        <div className="flex justify-between items-center font-bold text-lg">
-                          <span>Total:</span>
-                          <span>${orderData.total}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      ))}
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${orderData.total}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button onClick={() => navigate('/search')} variant="outline">
@@ -230,18 +228,6 @@ export const PaymentPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="email">Email for Receipt</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="mb-4"
-                    />
-                  </div>
-                  
                   {orderData && (
                     <StripePaymentForm
                       amount={orderData.total}
@@ -250,8 +236,7 @@ export const PaymentPage = () => {
                       metadata={{
                         orderId: orderData.barId.toString(),
                         barName: orderData.barName,
-                        orderType: orderData.type || 'order',
-                        email: email
+                        orderType: orderData.type || 'order'
                       }}
                       buttonText="Pay"
                     />
@@ -316,8 +301,6 @@ export const PaymentPage = () => {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Payment button is now handled by the StripePaymentForm component */}
               </div>
             </div>
           </div>

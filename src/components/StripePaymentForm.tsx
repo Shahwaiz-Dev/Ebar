@@ -1,113 +1,188 @@
 import { useState, useEffect } from 'react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
-import { useStripePayment } from '@/hooks/useStripePayment';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { AlertCircle, CheckCircle } from 'lucide-react';
+
+// Load Stripe outside of components to avoid recreating the `Stripe` object on every render.
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 interface StripePaymentFormProps {
   amount: number;
-  onSuccess: (paymentIntentId: string) => void;
+  onSuccess: (paymentId: string) => void;
   onError: (error: string) => void;
-  metadata?: Record<string, string>;
   buttonText?: string;
+  metadata?: Record<string, string>;
 }
 
-export const StripePaymentForm = ({
-  amount,
-  onSuccess,
-  onError,
-  metadata = {},
-  buttonText = 'Pay',
-}: StripePaymentFormProps) => {
+const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata = {} }: StripePaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { createPaymentIntent, isLoading, error } = useStripePayment();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [email, setEmail] = useState('');
   const [clientSecret, setClientSecret] = useState('');
-  const [cardError, setCardError] = useState('');
-  const [isCardComplete, setIsCardComplete] = useState(false);
 
   useEffect(() => {
-    if (amount <= 0) return;
+    // Create PaymentIntent as soon as the page loads
+    createPaymentIntent();
+  }, []);
 
-    // Create a payment intent when the component mounts
-    createPaymentIntent(
-      { amount, metadata },
-      {
-        onSuccess: (data) => {
-          setClientSecret(data.clientSecret);
+  const createPaymentIntent = async () => {
+    try {
+      const response = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        onError: (error) => {
-          onError(error.message);
-        },
+        body: JSON.stringify({
+          amount,
+          currency: 'usd',
+          metadata: {
+            ...metadata,
+            email: email,
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        onError(data.error);
+        return;
       }
-    );
-  }, [amount, createPaymentIntent, metadata, onError]);
+
+      setClientSecret(data.clientSecret);
+    } catch (error) {
+      console.error('Error creating payment intent:', error);
+      onError('Failed to initialize payment');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!stripe || !elements || !clientSecret) {
+      onError('Stripe has not loaded yet. Please try again.');
       return;
     }
 
-    const cardElement = elements.getElement(CardElement);
-
-    if (!cardElement) {
+    if (!email) {
+      onError('Please enter your email address');
       return;
     }
 
-    const { error: submitError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-      },
-    });
+    setIsProcessing(true);
 
-    if (submitError) {
-      setCardError(submitError.message || 'An error occurred while processing your payment');
-      onError(submitError.message || 'Payment failed');
-    } else if (paymentIntent.status === 'succeeded') {
-      onSuccess(paymentIntent.id);
+    try {
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        onError('Card element not found');
+        return;
+      }
+
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            email: email,
+          },
+        },
+      });
+
+      if (error) {
+        onError(error.message || 'Payment failed');
+      } else if (paymentIntent.status === 'succeeded') {
+        toast.success('Payment successful!');
+        onSuccess(paymentIntent.id);
+      } else {
+        onError('Payment was not successful');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      onError('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#424770',
+        '::placeholder': {
+          color: '#aab7c4',
+        },
+      },
+      invalid: {
+        color: '#9e2146',
+      },
+    },
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <div className="text-red-500 text-sm">{error}</div>}
-      {cardError && <div className="text-red-500 text-sm">{cardError}</div>}
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>Payment Details</CardTitle>
+        <CardDescription>
+          Enter your payment information to complete the transaction
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email for Receipt</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-      <div className="p-3 border rounded-md bg-card">
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: '16px',
-                color: '#424770',
-                '::placeholder': {
-                  color: '#aab7c4',
-                },
-              },
-              invalid: {
-                color: '#9e2146',
-              },
-            },
-          }}
-          onChange={(e) => setIsCardComplete(e.complete)}
-        />
-      </div>
+          <div className="space-y-2">
+            <Label>Card Information</Label>
+            <div className="border rounded-md p-3">
+              <CardElement options={cardElementOptions} />
+            </div>
+          </div>
 
-      <Button
-        type="submit"
-        disabled={!stripe || !elements || !clientSecret || !isCardComplete || isLoading}
-        className="w-full"
-      >
-        {isLoading ? (
-          <>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            Processing...
-          </>
-        ) : (
-          `${buttonText} $${amount.toFixed(2)}`
-        )}
-      </Button>
-    </form>
+          <div className="pt-4">
+            <Button
+              type="submit"
+              disabled={isProcessing || !stripe || !clientSecret}
+              className="w-full"
+            >
+              {isProcessing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </>
+              ) : (
+                `${buttonText} $${amount.toFixed(2)}`
+              )}
+            </Button>
+          </div>
+
+          <div className="text-xs text-muted-foreground text-center">
+            Your payment is secured by Stripe. We never store your card details.
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
+
+export const StripePaymentForm = (props: StripePaymentFormProps) => {
+  return (
+    <Elements stripe={stripePromise}>
+      <PaymentForm {...props} />
+    </Elements>
+  );
+}; 

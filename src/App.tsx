@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
-import { StripeProvider } from "@/components/StripeProvider";
 
 import Index from "./pages/Index";
 import SearchPage from "./pages/Search";
@@ -13,6 +12,7 @@ import OrderPage from "./pages/Order";
 import BookingPage from "./pages/Booking";
 import QRMenuPage from "./pages/QRMenu";
 import PaymentPage from "./pages/Payment";
+import { MockPaymentTest } from "./pages/MockPaymentTest";
 import AuthPage from "./pages/Auth";
 import DashboardPage from "./pages/Dashboard";
 import FavoritesPage from "./pages/Favorites";
@@ -24,7 +24,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  useScrollToTop(); // This will handle scroll-to-top on all route changes
+  useScrollToTop();
 
   return (
     <Routes>
@@ -34,6 +34,7 @@ const AppRoutes = () => {
       <Route path="/booking" element={<BookingPage />} />
       <Route path="/qr-menu/:barId" element={<QRMenuPage />} />
       <Route path="/payment" element={<PaymentPage />} />
+      <Route path="/mock-payment-test" element={<MockPaymentTest />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/favorites" element={<FavoritesPage />} />
@@ -51,13 +52,11 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <StripeProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-          </StripeProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
