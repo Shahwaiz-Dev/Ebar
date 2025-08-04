@@ -8,8 +8,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
-// Load Stripe outside of components to avoid recreating the `Stripe` object on every render.
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Safely load Stripe with error handling
+const getStripePromise = () => {
+  const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  
+  if (!publishableKey) {
+    console.error('Stripe publishable key is not set');
+    return null;
+  }
+  
+  if (!publishableKey.startsWith('pk_test_') && !publishableKey.startsWith('pk_live_')) {
+    console.error('Invalid Stripe publishable key format');
+    return null;
+  }
+  
+  try {
+    return loadStripe(publishableKey);
+  } catch (error) {
+    console.error('Failed to load Stripe:', error);
+    return null;
+  }
+};
+
+const stripePromise = getStripePromise();
+
+// Debug: Check if Stripe key is available
+console.log('Stripe Publishable Key:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? 'Set' : 'Not Set');
 
 interface StripePaymentFormProps {
   amount: number;
@@ -25,14 +49,30 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
   const [isProcessing, setIsProcessing] = useState(false);
   const [email, setEmail] = useState('');
   const [clientSecret, setClientSecret] = useState('');
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Debug: Check if Stripe is loaded
+    if (stripe) {
+      console.log('Stripe loaded successfully');
+      setStripeLoaded(true);
+      setStripeError(null);
+    } else {
+      console.log('Stripe not loaded yet');
+    }
+  }, [stripe]);
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
-    createPaymentIntent();
-  }, []);
+    if (stripeLoaded) {
+      createPaymentIntent();
+    }
+  }, [stripeLoaded]);
 
   const createPaymentIntent = async () => {
     try {
+      console.log('Creating payment intent for amount:', amount);
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: {
@@ -49,13 +89,16 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
       });
 
       const data = await response.json();
+      console.log('Payment intent response:', data);
 
       if (data.error) {
+        console.error('Payment intent error:', data.error);
         onError(data.error);
         return;
       }
 
       setClientSecret(data.clientSecret);
+      console.log('Client secret set successfully');
     } catch (error) {
       console.error('Error creating payment intent:', error);
       onError('Failed to initialize payment');
@@ -66,6 +109,7 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
     e.preventDefault();
 
     if (!stripe || !elements || !clientSecret) {
+      console.error('Stripe not ready:', { stripe: !!stripe, elements: !!elements, clientSecret: !!clientSecret });
       onError('Stripe has not loaded yet. Please try again.');
       return;
     }
@@ -117,12 +161,62 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
         '::placeholder': {
           color: '#aab7c4',
         },
+        padding: '12px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '6px',
+        backgroundColor: 'white',
       },
       invalid: {
         color: '#9e2146',
       },
     },
+    hidePostalCode: true,
   };
+
+  // Show error if Stripe failed to load
+  if (stripeError) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Payment Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+            <p className="text-sm text-red-600 mb-4">{stripeError}</p>
+            <p className="text-xs text-muted-foreground">
+              Please check your Stripe configuration and try again.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show loading if Stripe is not loaded
+  if (!stripeLoaded) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Payment Details</CardTitle>
+          <CardDescription>
+            Loading payment form...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-sm text-muted-foreground">
+              {!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY 
+                ? 'Stripe key not configured. Please set VITE_STRIPE_PUBLISHABLE_KEY in your environment variables.'
+                : 'Initializing payment form...'
+              }
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -148,7 +242,7 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
 
           <div className="space-y-2">
             <Label>Card Information</Label>
-            <div className="border rounded-md p-3">
+            <div className="border rounded-md p-3 bg-white">
               <CardElement options={cardElementOptions} />
             </div>
           </div>
@@ -180,6 +274,28 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
 };
 
 export const StripePaymentForm = (props: StripePaymentFormProps) => {
+  // Don't render if Stripe failed to load
+  if (!stripePromise) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Payment Unavailable</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+            <p className="text-sm text-red-600 mb-4">
+              Stripe is not properly configured. Please check your environment variables.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Make sure VITE_STRIPE_PUBLISHABLE_KEY is set correctly.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Elements stripe={stripePromise}>
       <PaymentForm {...props} />

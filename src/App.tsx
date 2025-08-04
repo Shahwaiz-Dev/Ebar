@@ -13,6 +13,7 @@ import BookingPage from "./pages/Booking";
 import QRMenuPage from "./pages/QRMenu";
 import PaymentPage from "./pages/Payment";
 import { MockPaymentTest } from "./pages/MockPaymentTest";
+import { StripeTestPage } from "./pages/StripeTestPage";
 import AuthPage from "./pages/Auth";
 import DashboardPage from "./pages/Dashboard";
 import FavoritesPage from "./pages/Favorites";
@@ -35,6 +36,7 @@ const AppRoutes = () => {
       <Route path="/qr-menu/:barId" element={<QRMenuPage />} />
       <Route path="/payment" element={<PaymentPage />} />
       <Route path="/mock-payment-test" element={<MockPaymentTest />} />
+      <Route path="/stripe-test" element={<StripeTestPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/favorites" element={<FavoritesPage />} />

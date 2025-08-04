@@ -4,8 +4,31 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Safely load Stripe with error handling
+const getStripePromise = () => {
+  const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  
+  if (!publishableKey) {
+    console.error('Stripe publishable key is not set');
+    return null;
+  }
+  
+  if (!publishableKey.startsWith('pk_test_') && !publishableKey.startsWith('pk_live_')) {
+    console.error('Invalid Stripe publishable key format');
+    return null;
+  }
+  
+  try {
+    return loadStripe(publishableKey);
+  } catch (error) {
+    console.error('Failed to load Stripe:', error);
+    return null;
+  }
+};
+
+const stripePromise = getStripePromise();
 
 const TestPaymentForm = () => {
   const stripe = useStripe();
@@ -92,11 +115,16 @@ const TestPaymentForm = () => {
         '::placeholder': {
           color: '#aab7c4',
         },
+        padding: '12px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '6px',
+        backgroundColor: 'white',
       },
       invalid: {
         color: '#9e2146',
       },
     },
+    hidePostalCode: true,
   };
 
   return (
@@ -117,7 +145,7 @@ const TestPaymentForm = () => {
           <>
             <div className="space-y-2">
               <label className="text-sm font-medium">Card Information</label>
-              <div className="border rounded-md p-3">
+              <div className="border rounded-md p-3 bg-white">
                 <CardElement options={cardElementOptions} />
               </div>
             </div>
@@ -148,6 +176,28 @@ const TestPaymentForm = () => {
 };
 
 export const StripeTest = () => {
+  // Don't render if Stripe failed to load
+  if (!stripePromise) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Stripe Test Payment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+            <p className="text-sm text-red-600 mb-4">
+              Stripe is not properly configured. Please check your environment variables.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Make sure VITE_STRIPE_PUBLISHABLE_KEY is set correctly.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Elements stripe={stripePromise}>
       <TestPaymentForm />
