@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, CreditCard, Mail, ArrowLeft, MapPin } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { StripePaymentForm } from '@/components/StripePaymentForm';
+import { toast } from 'sonner';
 
 interface OrderData {
   barId: number;
@@ -35,13 +37,7 @@ export const PaymentPage = () => {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [formData, setFormData] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardholderName: '',
-    email: '',
-  });
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
     const storedOrder = localStorage.getItem('currentOrder');
@@ -52,64 +48,30 @@ export const PaymentPage = () => {
     }
   }, [navigate]);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0] || '';
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return v;
-    }
-  };
-
-  const formatExpiryDate = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4);
-    }
-    return v;
-  };
-
-  const handlePayment = async () => {
-    if (!orderData) return;
-
-    // Validate form
-    if (!formData.cardNumber || !formData.expiryDate || !formData.cvv || !formData.cardholderName || !formData.email) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    setIsProcessing(true);
-
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
-      
-      // Send email receipt (simulated)
-      sendEmailReceipt();
-      
-      // Clear order data
-      localStorage.removeItem('currentOrder');
-    }, 3000);
-  };
-
-  const sendEmailReceipt = () => {
-    // Simulate sending email receipt
-    console.log('Sending email receipt to:', formData.email);
-    console.log('Order details:', orderData);
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    console.log('Payment successful with ID:', paymentIntentId);
     
+    // Send email receipt
+    sendEmailReceipt(paymentIntentId);
+    
+    // Update UI
+    setIsSuccess(true);
+    
+    // Clear order data
+    localStorage.removeItem('currentOrder');
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast.error(error || 'Payment failed. Please try again.');
+    setIsProcessing(false);
+  };
+
+  const sendEmailReceipt = (paymentIntentId: string) => {
     // In a real application, this would call your backend API
     // to send the actual email receipt
+    console.log('Sending email receipt to:', email);
+    console.log('Order details:', orderData);
+    console.log('Payment ID:', paymentIntentId);
   };
 
   if (!orderData) {
@@ -269,59 +231,31 @@ export const PaymentPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input
-                      id="cardNumber"
-                      placeholder="1234 5678 9012 3456"
-                      value={formData.cardNumber}
-                      onChange={(e) => handleInputChange('cardNumber', formatCardNumber(e.target.value))}
-                      maxLength={19}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="expiryDate">Expiry Date</Label>
-                      <Input
-                        id="expiryDate"
-                        placeholder="MM/YY"
-                        value={formData.expiryDate}
-                        onChange={(e) => handleInputChange('expiryDate', formatExpiryDate(e.target.value))}
-                        maxLength={5}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="cvv">CVV</Label>
-                      <Input
-                        id="cvv"
-                        placeholder="123"
-                        value={formData.cvv}
-                        onChange={(e) => handleInputChange('cvv', e.target.value.replace(/\D/g, ''))}
-                        maxLength={4}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="cardholderName">Cardholder Name</Label>
-                    <Input
-                      id="cardholderName"
-                      placeholder="John Doe"
-                      value={formData.cardholderName}
-                      onChange={(e) => handleInputChange('cardholderName', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div>
                     <Label htmlFor="email">Email for Receipt</Label>
                     <Input
                       id="email"
                       type="email"
                       placeholder="your@email.com"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="mb-4"
                     />
                   </div>
+                  
+                  {orderData && (
+                    <StripePaymentForm
+                      amount={orderData.total}
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                      metadata={{
+                        orderId: orderData.barId.toString(),
+                        barName: orderData.barName,
+                        orderType: orderData.type || 'order',
+                        email: email
+                      }}
+                      buttonText="Pay"
+                    />
+                  )}
                 </CardContent>
               </Card>
 
@@ -383,21 +317,7 @@ export const PaymentPage = () => {
                   </CardContent>
                 </Card>
 
-                <Button
-                  onClick={handlePayment}
-                  disabled={isProcessing}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Processing Payment...
-                    </>
-                  ) : (
-                    `Pay $${orderData.total}`
-                  )}
-                </Button>
+                {/* Payment button is now handled by the StripePaymentForm component */}
               </div>
             </div>
           </div>
@@ -409,4 +329,4 @@ export const PaymentPage = () => {
   );
 };
 
-export default PaymentPage; 
+export default PaymentPage;

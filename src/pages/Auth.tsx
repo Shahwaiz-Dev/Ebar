@@ -15,7 +15,8 @@ import {
   Eye,
   EyeOff,
   CheckCircle,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -166,7 +167,7 @@ export const AuthPage = () => {
       await resetPassword(resetEmail);
       toast({
         title: "Password reset email sent",
-        description: "Check your email for instructions to reset your password.",
+        description: "Check your email for instructions to reset your password. If you don't see it in your inbox, please check your spam/junk folder.",
       });
       setShowForgotPassword(false);
       setResetEmail('');
@@ -212,6 +213,12 @@ export const AuthPage = () => {
             <DialogTitle>Reset Password</DialogTitle>
             <DialogDescription>
               Enter your email address and we'll send you a link to reset your password.
+              <p className="mt-2 text-amber-600 text-sm font-medium">
+                <span className="flex items-center">
+                  <AlertTriangle className="h-4 w-4 mr-1" />
+                  Important: Please check your spam/junk folder if you don't see the email in your inbox.
+                </span>
+              </p>
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handlePasswordReset}>

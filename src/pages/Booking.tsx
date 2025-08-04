@@ -118,8 +118,33 @@ export const BookingPage = () => {
 
     try {
       const result = await createBookingMutation.mutateAsync(bookingData);
-      toast.success('Booking created successfully! Please wait for confirmation.');
-      navigate('/booking-history');
+      toast.success('Booking created successfully! Proceeding to payment.');
+      
+      // Store order data for payment page
+      const orderData = {
+        barId: selectedBar.id,
+        barName: selectedBar.name,
+        date: selectedDate,
+        time: selectedTime,
+        spotId: selectedItems[0]?.id,
+        sunbedNumber: selectedItems[0]?.category === 'sunbed' ? selectedItems[0]?.id : undefined,
+        umbrellaNumber: selectedItems[0]?.category === 'umbrella' ? selectedItems[0]?.id : undefined,
+        items: selectedItems.map(item => ({
+          id: item.id,
+          name: item.type,
+          price: item.price,
+          quantity: 1,
+          category: item.category
+        })),
+        total: getTotalPrice(),
+        type: 'booking'
+      };
+      
+      // Save order data to localStorage for the payment page
+      localStorage.setItem('currentOrder', JSON.stringify(orderData));
+      
+      // Navigate to payment page
+      navigate('/payment');
     } catch (error) {
       toast.error('Failed to create booking. Please try again.');
     }
@@ -520,4 +545,4 @@ export const BookingPage = () => {
   );
 };
 
-export default BookingPage; 
+export default BookingPage;

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
+import { StripeProvider } from "@/components/StripeProvider";
 
 import Index from "./pages/Index";
 import SearchPage from "./pages/Search";
@@ -50,11 +51,13 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <StripeProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </StripeProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
