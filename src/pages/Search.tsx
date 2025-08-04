@@ -15,7 +15,12 @@ import {
   Heart,
   HeartOff,
   SlidersHorizontal,
-  X
+  X,
+  Sun,
+  Umbrella,
+  TrendingUp,
+  Clock,
+  DollarSign
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -361,112 +366,99 @@ export const SearchPage = () => {
           {barsLoading ? (
             <SearchResultsSkeleton />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredBars.map((bar) => (
-                <Card 
-                  key={bar.id} 
-                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                  onClick={() => handleBarSelect(bar.id)}
-                >
-                  <div className="relative">
-                    <div className="aspect-video overflow-hidden rounded-t-lg">
-                      <LazyImage
-                        src={getBarImage(bar.name)}
-                        alt={bar.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+              {filteredBars.map((bar) => {
+                
+                return (
+                  <Card 
+                    key={bar.id} 
+                    className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col"
+                    onClick={() => handleBarSelect(bar.id)}
+                  >
+                    <div className="relative">
+                      <div className="aspect-video overflow-hidden rounded-t-lg">
+                        <LazyImage
+                          src={getBarImage(bar.name)}
+                          alt={bar.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <QuickShareButton
+                          title={bar.name}
+                          url={`${window.location.origin}/search?bar=${bar.id}`}
+                          className="bg-white/90 hover:bg-white"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="bg-white/90 hover:bg-white"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(bar.id!);
+                          }}
+                        >
+                          {userFavorites.some(fav => fav.barId === bar.id) ? (
+                            <Heart className="h-4 w-4 text-red-500 fill-current" />
+                          ) : (
+                            <HeartOff className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <div className="absolute top-2 left-2">
+                        <Badge className={`${getPriceColor(bar.priceRange)} bg-white/90`}>
+                          {bar.priceRange}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="absolute top-2 right-2 flex gap-1">
-                      <QuickShareButton
-                        title={bar.name}
-                        url={`${window.location.origin}/search?bar=${bar.id}`}
-                        className="bg-white/90 hover:bg-white"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="bg-white/90 hover:bg-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(bar.id!);
-                        }}
-                      >
-                        {userFavorites.some(fav => fav.barId === bar.id) ? (
-                          <Heart className="h-4 w-4 text-red-500 fill-current" />
-                        ) : (
-                          <HeartOff className="h-4 w-4" />
+                    <CardHeader className="pb-3 flex-1">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg font-bold text-foreground mb-2 truncate">
+                            {bar.name}
+                          </CardTitle>
+                          <div className="flex items-center text-muted-foreground mb-2">
+                            <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                            <span className="text-sm truncate">{bar.location}</span>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-2">
+                          <div className="flex items-center mb-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                            <span className="font-semibold text-sm">{bar.rating}</span>
+                            <span className="text-muted-foreground text-xs ml-1">
+                              ({bar.reviewCount})
+                            </span>
+                          </div>
+                          <div className="text-base font-bold text-primary">
+                            ${bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0 flex-1 flex flex-col">
+                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2 flex-1">
+                        {bar.description}
+                      </p>
+                      
+                      {/* Amenities */}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {bar.amenities.slice(0, 2).map((amenity) => (
+                          <Badge key={amenity} variant="secondary" className="text-xs">
+                            {amenity}
+                          </Badge>
+                        ))}
+                        {bar.amenities.length > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{bar.amenities.length - 2} more
+                          </Badge>
                         )}
-                      </Button>
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <Badge className={`${getPriceColor(bar.priceRange)} bg-white/90`}>
-                        {bar.priceRange}
-                      </Badge>
-                    </div>
-                  </div>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl font-bold text-foreground mb-2">
-                        {bar.name}
-                      </CardTitle>
-                      <div className="flex items-center text-muted-foreground mb-2">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{bar.location}</span>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center mb-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                        <span className="font-semibold">{bar.rating}</span>
-                        <span className="text-muted-foreground text-sm ml-1">
-                          ({bar.reviewCount})
-                        </span>
-                      </div>
-                      <div className="text-lg font-bold text-primary">
-                        ${bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                    {bar.description}
-                  </p>
-                  
-                  {/* Amenities */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {bar.amenities.slice(0, 3).map((amenity) => (
-                      <Badge key={amenity} variant="secondary" className="text-xs">
-                        {amenity}
-                      </Badge>
-                    ))}
-                    {bar.amenities.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{bar.amenities.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-1" />
-                        <span>2-8 guests</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span>0.5km</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-white">
-                      Select Bar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
 
           {filteredBars.length === 0 && (

@@ -8,145 +8,68 @@ import {
   Star, 
   Users, 
   Trash2,
-  ArrowLeft
+  ArrowLeft,
+  Sun,
+  Umbrella
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
-import featuredBar1 from '@/assets/featured-bar-1.jpg';
-import featuredBar2 from '@/assets/featured-bar-2.jpg';
-import featuredBar3 from '@/assets/featured-bar-3.jpg';
-
-// Enhanced mock data for beach bars (same as Search page)
-const beachBars = [
-  {
-    id: 1,
-    name: 'Sunset Paradise',
-    location: 'Santorini, Greece',
-    rating: 4.9,
-    reviews: 128,
-    image: featuredBar1,
-    description: 'Iconic cliffside bar with breathtaking sunset views and world-class cocktails.',
-    price: 85,
-    priceRange: '$$$',
-    amenities: ['Infinity Pool', 'Live DJ', 'Sunset Views', 'Beachfront', 'Fine Dining'],
-    capacity: '2-12 guests',
-    distance: 0.5,
-    category: 'Luxury',
-  },
-  {
-    id: 2,
-    name: 'Azure Beach Club',
-    location: 'Mykonos, Greece',
-    rating: 4.8,
-    reviews: 95,
-    image: featuredBar2,
-    description: 'Luxury beach club featuring modern architecture and premium beachside service.',
-    price: 120,
-    priceRange: '$$$$',
-    amenities: ['Beach Beds', 'Fine Dining', 'VIP Service', 'Infinity Pool', 'Live DJ'],
-    capacity: '2-8 guests',
-    distance: 1.2,
-    category: 'Premium',
-  },
-  {
-    id: 3,
-    name: 'Tiki Cove',
-    location: 'Maui, Hawaii',
-    rating: 4.7,
-    reviews: 156,
-    image: featuredBar3,
-    description: 'Tropical paradise with authentic Hawaiian cocktails and beachfront dining.',
-    price: 95,
-    priceRange: '$$$',
-    amenities: ['Tiki Bar', 'Live Music', 'Beach Access', 'Local Cuisine'],
-    capacity: '2-10 guests',
-    distance: 2.1,
-    category: 'Tropical',
-  },
-  {
-    id: 4,
-    name: 'Ocean Breeze',
-    location: 'Bali, Indonesia',
-    rating: 4.6,
-    reviews: 89,
-    image: featuredBar1,
-    description: 'Serene beachfront bar with traditional Indonesian cuisine and sunset views.',
-    price: 75,
-    priceRange: '$$',
-    amenities: ['Beachfront', 'Local Cuisine', 'Spa Services', 'Sunset Views'],
-    capacity: '2-6 guests',
-    distance: 3.5,
-    category: 'Relaxed',
-  },
-  {
-    id: 5,
-    name: 'Coral Reef',
-    location: 'Maldives',
-    rating: 4.5,
-    reviews: 67,
-    image: featuredBar2,
-    description: 'Overwater bar with stunning coral reef views and fresh seafood.',
-    price: 150,
-    priceRange: '$$$$',
-    amenities: ['Overwater', 'Coral Views', 'Fresh Seafood', 'Snorkeling'],
-    capacity: '2-6 guests',
-    distance: 5.2,
-    category: 'Luxury',
-  },
-  {
-    id: 6,
-    name: 'Beach Shack',
-    location: 'Miami, Florida',
-    rating: 4.3,
-    reviews: 234,
-    image: featuredBar3,
-    description: 'Casual beachfront bar with great cocktails and live music.',
-    price: 45,
-    priceRange: '$',
-    amenities: ['Live Music', 'Casual Dining', 'Beach Access', 'Happy Hour'],
-    capacity: '2-15 guests',
-    distance: 0.8,
-    category: 'Casual',
-  },
-];
+import { useAuth } from '@/contexts/AuthContext';
+import { useFavoritesByUser, useRemoveFromFavorites } from '@/hooks/useFavorites';
+import { useBeachBars } from '@/hooks/useBeachBars';
+import { toast } from 'sonner';
 
 export const FavoritesPage = () => {
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [favoriteBars, setFavoriteBars] = useState<typeof beachBars>([]);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { data: userFavorites = [], isLoading: favoritesLoading } = useFavoritesByUser(currentUser?.uid || '');
+  const { data: beachBars = [], isLoading: barsLoading } = useBeachBars();
+  const removeFromFavoritesMutation = useRemoveFromFavorites();
 
-  // Load favorites from localStorage
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem('favorites');
-    if (savedFavorites) {
-      const favoriteIds = JSON.parse(savedFavorites);
-      setFavorites(favoriteIds);
-      const bars = beachBars.filter(bar => favoriteIds.includes(bar.id));
-      setFavoriteBars(bars);
+  // Get the actual beach bar data for favorited bars
+  const favoriteBars = beachBars.filter(bar => 
+    userFavorites.some(fav => fav.barId === bar.id)
+  );
+
+  const handleRemoveFavorite = async (barId: string) => {
+    if (!currentUser) {
+      toast.error('Please log in to manage favorites');
+      return;
     }
-  }, []);
 
-  const removeFavorite = (barId: number) => {
-    const newFavorites = favorites.filter(id => id !== barId);
-    setFavorites(newFavorites);
-    setFavoriteBars(prev => prev.filter(bar => bar.id !== barId));
-    localStorage.setItem('favorites', JSON.stringify(newFavorites));
+    try {
+      await removeFromFavoritesMutation.mutateAsync({ userId: currentUser.uid, barId });
+      toast.success('Removed from favorites');
+    } catch (error) {
+      toast.error('Failed to remove from favorites');
+    }
   };
 
-  const handleBarSelect = (barId: number) => {
+  const handleBarSelect = (barId: string) => {
     navigate(`/order/${barId}`);
   };
 
   const getPriceColor = (priceRange: string) => {
     switch (priceRange) {
-      case '$': return 'text-green-600';
-      case '$$': return 'text-yellow-600';
-      case '$$$': return 'text-orange-600';
-      case '$$$$': return 'text-red-600';
+      case 'low': return 'text-green-600';
+      case 'medium': return 'text-yellow-600';
+      case 'high': return 'text-orange-600';
       default: return 'text-gray-600';
     }
   };
+
+  // Show loading while data is being fetched
+  if (favoritesLoading || barsLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your favorites...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
@@ -189,12 +112,12 @@ export const FavoritesPage = () => {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
               {favoriteBars.map((bar) => (
                 <Card 
                   key={bar.id} 
-                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                  onClick={() => handleBarSelect(bar.id)}
+                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col"
+                  onClick={() => handleBarSelect(bar.id!)}
                 >
                   <div className="relative">
                     <div className="aspect-video overflow-hidden rounded-t-lg">
@@ -210,7 +133,7 @@ export const FavoritesPage = () => {
                       className="absolute top-2 right-2 bg-white/90 hover:bg-white text-red-500"
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeFavorite(bar.id);
+                        handleRemoveFavorite(bar.id!);
                       }}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -221,62 +144,62 @@ export const FavoritesPage = () => {
                       </Badge>
                     </div>
                   </div>
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 flex-1">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-xl font-bold text-foreground mb-2">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg font-bold text-foreground mb-2 truncate">
                           {bar.name}
                         </CardTitle>
                         <div className="flex items-center text-muted-foreground mb-2">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          <span className="text-sm">{bar.location}</span>
+                          <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                          <span className="text-sm truncate">{bar.location}</span>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0 ml-2">
                         <div className="flex items-center mb-1">
                           <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                          <span className="font-semibold">{bar.rating}</span>
-                          <span className="text-muted-foreground text-sm ml-1">
-                            ({bar.reviews})
+                          <span className="font-semibold text-sm">{bar.rating}</span>
+                          <span className="text-muted-foreground text-xs ml-1">
+                            ({bar.reviewCount})
                           </span>
                         </div>
-                        <div className="text-lg font-bold text-primary">
-                          ${bar.price}
+                        <div className="text-base font-bold text-primary">
+                          ${bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
                         </div>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+                  <CardContent className="pt-0 flex-1 flex flex-col">
+                    <p className="text-muted-foreground text-sm mb-3 line-clamp-2 flex-1">
                       {bar.description}
                     </p>
                     
                     {/* Amenities */}
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {bar.amenities.slice(0, 3).map((amenity) => (
+                      {bar.amenities.slice(0, 2).map((amenity) => (
                         <Badge key={amenity} variant="secondary" className="text-xs">
                           {amenity}
                         </Badge>
                       ))}
-                      {bar.amenities.length > 3 && (
+                      {bar.amenities.length > 2 && (
                         <Badge variant="secondary" className="text-xs">
-                          +{bar.amenities.length - 3} more
+                          +{bar.amenities.length - 2} more
                         </Badge>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-1" />
-                          <span>{bar.capacity}</span>
+                          <Sun className="h-3 w-3 mr-1" />
+                          <span>{bar.sunbeds.filter(s => s.available).length}</span>
                         </div>
                         <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          <span>{bar.distance}km</span>
+                          <Umbrella className="h-3 w-3 mr-1" />
+                          <span>{bar.umbrellas.filter(u => u.available).length}</span>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-white">
+                      <Button variant="sunset" size="sm" className="text-xs">
                         Book Now
                       </Button>
                     </div>

@@ -1,24 +1,48 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Users, DollarSign, Calendar } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, DollarSign, Calendar, ShoppingCart } from 'lucide-react';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface AnalyticsProps {
   barId: string;
 }
 
 export const Analytics = ({ barId }: AnalyticsProps) => {
-  // Mock analytics data - in real app, this would come from Firestore
-  const mockData = {
-    totalRevenue: 12500,
-    totalBookings: 156,
-    averageRating: 4.6,
-    monthlyRevenue: [3200, 4100, 3800, 5200, 4800, 6100],
-    topItems: [
-      { name: 'Sunset Margarita', sales: 45 },
-      { name: 'Beach Burger', sales: 38 },
-      { name: 'Pina Colada', sales: 32 },
-      { name: 'Fish Tacos', sales: 28 }
-    ]
-  };
+  const { data: analytics, isLoading, error } = useAnalytics(barId);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 bg-muted rounded w-24"></div>
+                <div className="h-4 w-4 bg-muted rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-muted rounded w-20 mb-2"></div>
+                <div className="h-3 bg-muted rounded w-32"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !analytics) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Failed to load analytics data</p>
+      </div>
+    );
+  }
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 
   return (
     <div className="space-y-6">
@@ -30,9 +54,9 @@ export const Analytics = ({ barId }: AnalyticsProps) => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${mockData.totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              All time revenue
             </p>
           </CardContent>
         </Card>
@@ -43,9 +67,9 @@ export const Analytics = ({ barId }: AnalyticsProps) => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockData.totalBookings}</div>
+            <div className="text-2xl font-bold">{analytics.totalBookings}</div>
             <p className="text-xs text-muted-foreground">
-              +12% from last month
+              All time bookings
             </p>
           </CardContent>
         </Card>
@@ -56,22 +80,22 @@ export const Analytics = ({ barId }: AnalyticsProps) => {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockData.averageRating}</div>
+            <div className="text-2xl font-bold">{analytics.averageRating}</div>
             <p className="text-xs text-muted-foreground">
-              +0.2 from last month
+              {analytics.averageRating > 0 ? 'Customer rating' : 'No reviews yet'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,847</div>
+            <div className="text-2xl font-bold">{analytics.totalOrders}</div>
             <p className="text-xs text-muted-foreground">
-              +180 from last month
+              Food & drink orders
             </p>
           </CardContent>
         </Card>
@@ -83,22 +107,29 @@ export const Analytics = ({ barId }: AnalyticsProps) => {
           <CardTitle>Monthly Revenue</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex items-end justify-between space-x-2">
-            {mockData.monthlyRevenue.map((revenue, index) => {
-              const height = (revenue / Math.max(...mockData.monthlyRevenue)) * 100;
-              const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-              
-              return (
-                <div key={index} className="flex flex-col items-center space-y-2">
-                  <div 
-                    className="w-8 bg-primary rounded-t"
-                    style={{ height: `${height}%` }}
-                  />
-                  <span className="text-xs text-muted-foreground">{months[index]}</span>
-                </div>
-              );
-            })}
-          </div>
+          {analytics.monthlyRevenue.some(revenue => revenue > 0) ? (
+            <div className="h-64 flex items-end justify-between space-x-2">
+              {analytics.monthlyRevenue.map((revenue, index) => {
+                const maxRevenue = Math.max(...analytics.monthlyRevenue);
+                const height = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
+                
+                return (
+                  <div key={index} className="flex flex-col items-center space-y-2">
+                    <div 
+                      className="w-8 bg-primary rounded-t"
+                      style={{ height: `${height}%` }}
+                    />
+                    <span className="text-xs text-muted-foreground">{months[index]}</span>
+                    <span className="text-xs font-medium">${revenue.toLocaleString()}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-64 flex items-center justify-center">
+              <p className="text-muted-foreground">No revenue data available</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -108,25 +139,31 @@ export const Analytics = ({ barId }: AnalyticsProps) => {
           <CardTitle>Top Selling Items</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {mockData.topItems.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-primary">{index + 1}</span>
+          {analytics.topItems.length > 0 ? (
+            <div className="space-y-4">
+              {analytics.topItems.map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium text-primary">{index + 1}</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">{item.sales} sales</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">{item.sales} sales</p>
+                  <div className="text-right">
+                    <p className="font-medium">${item.revenue.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">revenue</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">${(item.sales * 12).toLocaleString()}</p>
-                  <p className="text-sm text-muted-foreground">revenue</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No order data available</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -136,34 +173,28 @@ export const Analytics = ({ barId }: AnalyticsProps) => {
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">New booking received</p>
-                <p className="text-xs text-muted-foreground">John Doe booked 4 sunbeds for tomorrow</p>
-              </div>
-              <span className="text-xs text-muted-foreground">2 min ago</span>
+          {analytics.recentActivity.length > 0 ? (
+            <div className="space-y-4">
+              {analytics.recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-center space-x-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    activity.type === 'booking' ? 'bg-green-500' :
+                    activity.type === 'order' ? 'bg-blue-500' : 'bg-yellow-500'
+                  }`} />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.message}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {activity.timestamp.toLocaleDateString()} at {activity.timestamp.toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">Payment received</p>
-                <p className="text-xs text-muted-foreground">$120 payment for booking #1234</p>
-              </div>
-              <span className="text-xs text-muted-foreground">15 min ago</span>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No recent activity</p>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">New review posted</p>
-                <p className="text-xs text-muted-foreground">5-star review from Sarah Johnson</p>
-              </div>
-              <span className="text-xs text-muted-foreground">1 hour ago</span>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

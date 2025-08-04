@@ -1,126 +1,95 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/sonner';
+import { Loader } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, X } from 'lucide-react';
+import { useCreateReview } from '@/hooks/useReviews';
+import { useAuth } from '@/contexts/AuthContext';
+import { Star } from 'lucide-react';
 
 interface ReviewModalProps {
+  barId: string;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (review: { rating: number; comment: string }) => void;
-  barName: string;
 }
 
-export const ReviewModal = ({ isOpen, onClose, onSubmit, barName }: ReviewModalProps) => {
+export const ReviewModal = ({ barId, isOpen, onClose }: ReviewModalProps) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [hoveredRating, setHoveredRating] = useState(0);
+  const { currentUser } = useAuth();
+  const createReviewMutation = useCreateReview();
 
-  const handleSubmit = () => {
-    if (rating === 0) {
-      alert('Please select a rating');
-      return;
+  const handleSubmit = async () => {
+    try {
+      if (!currentUser) {
+        toast.error('You must be logged in to submit a review');
+        return;
+      }
+      if (rating === 0) {
+        toast.error('Please select a rating');
+        return;
+      }
+      if (comment.length < 10) {
+        toast.error('Comment must be at least 10 characters');
+        return;
+      }
+
+      await createReviewMutation.mutateAsync({
+        barId,
+        userId: currentUser.uid,
+        rating,
+        comment,
+      });
+      toast.success('Thank you for your review!');
+      onClose();
+    } catch (error) {
+      toast.error('Failed to submit review. Please try again.');
     }
-    if (comment.trim().length < 10) {
-      alert('Please write a review with at least 10 characters');
-      return;
-    }
-    
-    onSubmit({ rating, comment: comment.trim() });
-    setRating(0);
-    setComment('');
-    onClose();
   };
-
-  const handleClose = () => {
-    setRating(0);
-    setComment('');
-    onClose();
-  };
-
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Write a Review</CardTitle>
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Share your experience at {barName}
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Rating */}
-          <div>
-            <Label className="text-sm font-medium">Rating</Label>
-            <div className="flex items-center gap-1 mt-2">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Leave a Review</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <div className="mb-4">
+            <Label>Rating</Label>
+            <div className="flex items-center">
               {[1, 2, 3, 4, 5].map((star) => (
-                <button
+                <Star
                   key={star}
-                  type="button"
+                  className={`h-8 w-8 cursor-pointer transition-colors ${
+                    rating >= star 
+                      ? 'text-yellow-400 fill-current' 
+                      : 'text-gray-300 hover:text-yellow-300'
+                  }`}
                   onClick={() => setRating(star)}
-                  onMouseEnter={() => setHoveredRating(star)}
-                  onMouseLeave={() => setHoveredRating(0)}
-                  className="p-1"
-                >
-                  <Star
-                    className={`h-6 w-6 transition-colors ${
-                      star <= (hoveredRating || rating)
-                        ? 'text-yellow-400 fill-current'
-                        : 'text-gray-300'
-                    }`}
-                  />
-                </button>
+                />
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {rating > 0 && (
-                <>
-                  {rating === 1 && 'Poor'}
-                  {rating === 2 && 'Fair'}
-                  {rating === 3 && 'Good'}
-                  {rating === 4 && 'Very Good'}
-                  {rating === 5 && 'Excellent'}
-                </>
-              )}
-            </p>
           </div>
-
-          {/* Comment */}
           <div>
-            <Label htmlFor="comment" className="text-sm font-medium">
-              Your Review
-            </Label>
-            <Textarea
-              id="comment"
-              placeholder="Share your experience, what you liked, and any suggestions..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="mt-2 min-h-[100px]"
-              maxLength={500}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {comment.length}/500 characters
-            </p>
+            <Label htmlFor="comment">Comment</Label>
+            <Textarea id="comment" value={comment} onChange={(e) => setComment(e.target.value)} />
           </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <Button variant="outline" onClick={handleClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit} className="flex-1" disabled={rating === 0}>
-              Submit Review
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose} variant="outline">Cancel</Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={createReviewMutation.isPending}
+          >
+            {createReviewMutation.isPending && (
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {createReviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
-}; 
+};

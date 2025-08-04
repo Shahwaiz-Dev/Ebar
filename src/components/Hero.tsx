@@ -85,15 +85,42 @@ export const Hero = () => {
         </p>
 
         <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full max-w-sm sm:max-w-none mx-auto">
-          <Button variant="hero" size="lg" className="group w-full sm:w-auto sm:text-lg" onClick={() => navigate('/search')}>
-            <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2 group-hover:scale-110 transition-transform" />
+          <Button variant="hero" size="lg" className="group w-full sm:w-auto sm:text-lg" onClick={() => {
+            navigate('/search');
+            setTimeout(() => {
+              window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 100);
+          }}>
+            <Search className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
             Find Beach Bars
           </Button>
-          <Button variant="glass" size="lg" className="group w-full sm:w-auto sm:text-lg" onClick={() => navigate('/booking')}>
-            <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-2 group-hover:scale-110 transition-transform" />
-            Book Spots
+          <Button variant="glass" size="lg" className="group w-full sm:w-auto sm:text-lg" onClick={() => {
+            navigate('/booking');
+            setTimeout(() => {
+              window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 100);
+          }}>
+            <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+            Book Now
           </Button>
-          <Button variant="outline" size="lg" className="group w-full sm:w-auto sm:text-lg bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30" onClick={() => navigate('/auth')}>
+          <Button variant="ghost" size="lg" className="group w-full sm:w-auto sm:text-lg text-white hover:bg-white/30" onClick={() => {
+            navigate('/auth');
+            setTimeout(() => {
+              window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 100);
+          }}>
             <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 group-hover:scale-110 transition-transform" />
             List Your Bar
           </Button>

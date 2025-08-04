@@ -15,27 +15,40 @@ service cloud.firestore {
     
     // Bookings collection - users can read their own bookings, bar owners can read bookings for their bars
     match /bookings/{bookingId} {
-      allow read: if request.auth != null && (
-        request.auth.uid == resource.data.userId || 
-        request.auth.uid == resource.data.ownerId
-      );
+      allow read: if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.userId || 
-        request.auth.uid == resource.data.ownerId
+        exists(/databases/$(database.name)/documents/beachBars/$(resource.data.barId)) &&
+        get(/databases/$(database.name)/documents/beachBars/$(resource.data.barId)).data.ownerId == request.auth.uid
+      );
+    }
+
+    // Orders collection - users can create and read their own orders, bar owners can manage orders
+    match /orders/{orderId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        (exists(/databases/$(database)/documents/beachBars/$(resource.data.barId)) &&
+         get(/databases/$(database)/documents/beachBars/$(resource.data.barId)).data.ownerId == request.auth.uid)
       );
     }
     
     // Reviews collection - public read, authenticated users can create their own reviews
     match /reviews/{reviewId} {
       allow read: if true; // Anyone can read reviews
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if 
+        request.auth != null 
+        && request.auth.uid == request.resource.data.userId
+        && request.resource.data.rating >= 1 
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment.size() >= 10;
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
     // Favorites collection - users can manage their own favorites
     match /favorites/{favoriteId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if request.auth != null;
     }
   }
 } 

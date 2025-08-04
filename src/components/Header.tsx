@@ -41,6 +41,14 @@ export const Header = () => {
     if (item.type === 'route') {
       e.preventDefault();
       navigate(item.href);
+      // Scroll to top after navigation
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'smooth'
+        });
+      }, 100);
     } else if (item.type === 'hash') {
       e.preventDefault();
       
@@ -79,7 +87,7 @@ export const Header = () => {
     { label: 'Book Spots', href: '/booking', type: 'route' },
     { label: 'How it Works', href: '#how-it-works', type: 'hash' },
     { label: 'Featured', href: '#featured', type: 'hash' },
-    { label: 'Contact', href: '#contact', type: 'hash' },
+    { label: 'Contact', href: '/contact', type: 'route' },
   ];
 
   return (
@@ -90,7 +98,16 @@ export const Header = () => {
       <div className="hidden md:flex items-center justify-between w-full">
         <NavbarBrand 
           className="cursor-pointer"
-          onClick={() => navigate('/')}
+          onClick={() => {
+            navigate('/');
+            setTimeout(() => {
+              window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 100);
+          }}
         >
           <div className="p-2 gradient-primary rounded-xl">
             <Waves className="h-6 w-6 text-white" />
@@ -117,7 +134,16 @@ export const Header = () => {
         <div className="flex items-center space-x-4">
           {!currentUser ? (
             <>
-              <Button variant="ghost" size="lg" onClick={() => navigate('/auth')}>
+              <Button variant="ghost" size="lg" onClick={() => {
+                navigate('/auth');
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 0,
+                    left: 0,
+                    behavior: 'smooth'
+                  });
+                }, 100);
+              }}>
                 Sign In
               </Button>
               <Button variant="sunset" size="lg">
@@ -145,18 +171,45 @@ export const Header = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {currentUser?.type === 'owner' && (
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <DropdownMenuItem onClick={() => {
+                    navigate('/dashboard');
+                    setTimeout(() => {
+                      window.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: 'smooth'
+                      });
+                    }, 100);
+                  }}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Dashboard</span>
                   </DropdownMenuItem>
                 )}
                 {currentUser?.type !== 'owner' && (
                   <>
-                    <DropdownMenuItem onClick={() => navigate('/favorites')}>
+                    <DropdownMenuItem onClick={() => {
+                      navigate('/favorites');
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          left: 0,
+                          behavior: 'smooth'
+                        });
+                      }, 100);
+                    }}>
                       <Heart className="mr-2 h-4 w-4" />
                       <span>Favorites</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/booking-history')}>
+                    <DropdownMenuItem onClick={() => {
+                      navigate('/booking-history');
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          left: 0,
+                          behavior: 'smooth'
+                        });
+                      }, 100);
+                    }}>
                       <Clock className="mr-2 h-4 w-4" />
                       <span>Booking History</span>
                     </DropdownMenuItem>
@@ -185,7 +238,16 @@ export const Header = () => {
         {/* Logo - Center */}
         <div 
           className="flex items-center cursor-pointer"
-          onClick={() => navigate('/')}
+          onClick={() => {
+            navigate('/');
+            setTimeout(() => {
+              window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 100);
+          }}
         >
           <div className="p-2 gradient-primary rounded-xl">
             <Waves className="h-6 w-6 text-white" />
@@ -194,7 +256,16 @@ export const Header = () => {
 
         {/* Profile/Sign In - Right */}
         {!currentUser ? (
-          <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
+          <Button variant="ghost" size="sm" onClick={() => {
+            navigate('/auth');
+            setTimeout(() => {
+              window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 100);
+          }}>
             Sign In
           </Button>
         ) : (
@@ -217,18 +288,45 @@ export const Header = () => {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {currentUser?.type === 'owner' && (
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                <DropdownMenuItem onClick={() => {
+                  navigate('/dashboard');
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 0,
+                      left: 0,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Dashboard</span>
                 </DropdownMenuItem>
               )}
               {currentUser?.type !== 'owner' && (
                 <>
-                  <DropdownMenuItem onClick={() => navigate('/favorites')}>
+                  <DropdownMenuItem onClick={() => {
+                    navigate('/favorites');
+                    setTimeout(() => {
+                      window.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: 'smooth'
+                      });
+                    }, 100);
+                  }}>
                     <Heart className="mr-2 h-4 w-4" />
                     <span>Favorites</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/booking-history')}>
+                  <DropdownMenuItem onClick={() => {
+                    navigate('/booking-history');
+                    setTimeout(() => {
+                      window.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: 'smooth'
+                      });
+                    }, 100);
+                  }}>
                     <Clock className="mr-2 h-4 w-4" />
                     <span>Booking History</span>
                   </DropdownMenuItem>
@@ -263,7 +361,16 @@ export const Header = () => {
           <div className="flex flex-col space-y-3 pt-4 border-t border-border">
             {!currentUser ? (
               <>
-                <Button variant="ghost" size="lg" className="justify-start" onClick={() => navigate('/auth')}>
+                <Button variant="ghost" size="lg" className="justify-start" onClick={() => {
+                  navigate('/auth');
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 0,
+                      left: 0,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }}>
                   Sign In
                 </Button>
                 <Button variant="sunset" size="lg">
@@ -277,10 +384,49 @@ export const Header = () => {
                   <p className="text-xs text-muted-foreground">{currentUser?.email}</p>
                 </div>
                 {currentUser?.type === 'owner' && (
-                  <Button variant="ghost" size="lg" className="justify-start" onClick={() => navigate('/dashboard')}>
+                  <Button variant="ghost" size="lg" className="justify-start" onClick={() => {
+                    navigate('/dashboard');
+                    setTimeout(() => {
+                      window.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: 'smooth'
+                      });
+                    }, 100);
+                  }}>
                     <Settings className="h-4 w-4 mr-2" />
                     Dashboard
                   </Button>
+                )}
+                {currentUser?.type !== 'owner' && (
+                  <>
+                    <Button variant="ghost" size="lg" className="justify-start" onClick={() => {
+                      navigate('/favorites');
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          left: 0,
+                          behavior: 'smooth'
+                        });
+                      }, 100);
+                    }}>
+                      <Heart className="h-4 w-4 mr-2" />
+                      Favorites
+                    </Button>
+                    <Button variant="ghost" size="lg" className="justify-start" onClick={() => {
+                      navigate('/booking-history');
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          left: 0,
+                          behavior: 'smooth'
+                        });
+                      }, 100);
+                    }}>
+                      <Clock className="h-4 w-4 mr-2" />
+                      Booking History
+                    </Button>
+                  </>
                 )}
                 <Button variant="ghost" size="lg" className="justify-start" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />

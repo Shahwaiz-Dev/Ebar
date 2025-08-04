@@ -7,11 +7,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Building2, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import {
+  User,
+  Building2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  X
+} from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthUser } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface AuthFormData {
   email: string;
@@ -26,12 +43,15 @@ interface AuthFormData {
 
 export const AuthPage = () => {
   const navigate = useNavigate();
-  const { signUp, signIn, signInWithGoogle } = useAuth();
+  const { signUp, signIn, signInWithGoogle, updateUserProfile, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [userType, setUserType] = useState<'user' | 'owner'>('user');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
   const [formData, setFormData] = useState<AuthFormData>({
     email: '',
     password: '',
@@ -53,6 +73,7 @@ export const AuthPage = () => {
 
     try {
       if (activeTab === 'signup') {
+        // Create the user account
         await signUp(
           formData.email,
           formData.password,
@@ -60,6 +81,24 @@ export const AuthPage = () => {
           formData.lastName,
           userType
         );
+        
+        // If there's additional profile data, update it
+        const additionalData: Partial<AuthUser> = {};
+        
+        if (formData.phone) {
+          additionalData.phone = formData.phone;
+        }
+        
+        if (userType === 'owner') {
+          additionalData.businessName = formData.businessName;
+          additionalData.businessAddress = formData.businessAddress;
+        }
+        
+        // Only update if there's data to update
+        if (Object.keys(additionalData).length > 0) {
+          await updateUserProfile(additionalData);
+        }
+        
         toast({
           title: "Account created successfully!",
           description: "Welcome to BeachVibe!",
@@ -111,12 +150,52 @@ export const AuthPage = () => {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      await resetPassword(resetEmail);
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for instructions to reset your password.",
+      });
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast({
+        title: "Password reset failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const isFormValid = () => {
     if (activeTab === 'login') {
       return formData.email && formData.password;
     } else {
       const baseValid = formData.email && formData.password && formData.confirmPassword && 
                        formData.firstName && formData.lastName;
+      
+      // Additional validation for bar owners
+      if (userType === 'owner' && activeTab === 'signup') {
+        return baseValid && 
+               formData.password === formData.confirmPassword &&
+               formData.businessName && 
+               formData.businessAddress;
+      }
       
       return baseValid && formData.password === formData.confirmPassword;
     }
@@ -125,6 +204,54 @@ export const AuthPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       <Header />
+      
+      {/* Password Reset Modal */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we'll send you a link to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handlePasswordReset}>
+            <div className="grid gap-4 py-4">
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowForgotPassword(false)}
+                disabled={isResetting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!resetEmail || isResetting}>
+                {isResetting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </>
+                ) : (
+                  'Send Reset Link'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,7 +326,16 @@ export const AuthPage = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="login-password">Password</Label>
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="login-password">Password</Label>
+                          <button 
+                            type="button" 
+                            onClick={() => setShowForgotPassword(true)}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Forgot password?
+                          </button>
+                        </div>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -321,6 +457,44 @@ export const AuthPage = () => {
 
                       
 
+                      {/* Phone Number - Optional for all users */}
+                      <div>
+                        <Label htmlFor="signup-phone">Phone Number (Optional)</Label>
+                        <Input
+                          id="signup-phone"
+                          type="tel"
+                          placeholder="+1 (555) 123-4567"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                        />
+                      </div>
+
+                      {/* Business fields - Only shown for bar owners */}
+                      {userType === 'owner' && (
+                        <>
+                          <div>
+                            <Label htmlFor="signup-businessName">Business Name</Label>
+                            <Input
+                              id="signup-businessName"
+                              placeholder="Your Beach Bar Name"
+                              value={formData.businessName}
+                              onChange={(e) => handleInputChange('businessName', e.target.value)}
+                              required={userType === 'owner'}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="signup-businessAddress">Business Address</Label>
+                            <Input
+                              id="signup-businessAddress"
+                              placeholder="123 Beach Road, Paradise Island"
+                              value={formData.businessAddress}
+                              onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                              required={userType === 'owner'}
+                            />
+                          </div>
+                        </>
+                      )}
+
                       <div>
                         <Label htmlFor="signup-password">Password</Label>
                         <div className="relative">
@@ -435,4 +609,4 @@ export const AuthPage = () => {
   );
 };
 
-export default AuthPage; 
+export default AuthPage;

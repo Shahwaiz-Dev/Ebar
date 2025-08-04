@@ -11,7 +11,8 @@ import {
   orderBy, 
   limit,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  setDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -67,15 +68,35 @@ export interface Booking {
   date: string;
   time: string;
   guests: number;
-  type: 'sunbed' | 'umbrella' | 'food_order';
-  spotId?: string;
-  items?: Array<{
+  type: 'sunbed' | 'umbrella';
+  spotId: string;
+  total: number;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface Order {
+  id?: string;
+  userId: string;
+  barId: string;
+  barName: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  items: Array<{
+    id: string;
     name: string;
     quantity: number;
     price: number;
+    category: 'drinks' | 'food';
   }>;
   total: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  deliveryLocation?: {
+    sunbedNumber?: string;
+    umbrellaNumber?: string;
+  };
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -87,6 +108,17 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: Timestamp;
+  user?: {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    type: 'user' | 'owner';
+    avatar?: string;
+    displayName: string;
+    photoURL?: string;
+    isVerified: boolean;
+  };
 }
 
 export interface Favorite {
@@ -116,10 +148,29 @@ export const createBeachBar = async (barData: Omit<BeachBar, 'id' | 'createdAt' 
 export const getBeachBars = async () => {
   try {
     const querySnapshot = await getDocs(beachBarsCollection);
-    return querySnapshot.docs.map(doc => ({
+    const bars = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as BeachBar[];
+
+    // Get reviews for all bars to calculate real ratings
+    const barIds = bars.map(bar => bar.id!).filter(Boolean);
+    const reviewsByBar = await getReviewsForMultipleBars(barIds);
+
+    // Update bars with real rating and review count
+    const barsWithRealData = bars.map(bar => {
+      const barReviews = reviewsByBar[bar.id!] || [];
+      const totalRating = barReviews.reduce((sum, review) => sum + review.rating, 0);
+      const averageRating = barReviews.length > 0 ? totalRating / barReviews.length : 0;
+      
+      return {
+        ...bar,
+        rating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+        reviewCount: barReviews.length
+      };
+    });
+
+    return barsWithRealData;
   } catch (error) {
     console.error('Error getting beach bars:', error);
     throw error;
@@ -226,10 +277,11 @@ export const getBookingsByBar = async (barId: string) => {
       orderBy('createdAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
+    const bookings = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as Booking[];
+    return bookings;
   } catch (error) {
     console.error('Error getting bookings by bar:', error);
     throw error;
@@ -245,6 +297,73 @@ export const updateBookingStatus = async (id: string, status: Booking['status'])
     });
   } catch (error) {
     console.error('Error updating booking status:', error);
+    throw error;
+  }
+};
+
+// Orders Collection
+export const ordersCollection = collection(db, 'orders');
+
+export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
+  try {
+    const docRef = await addDoc(ordersCollection, {
+      ...orderData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return { id: docRef.id, ...orderData };
+  } catch (error) {
+    console.error('Error creating order:', error);
+    throw error;
+  }
+};
+
+export const getOrdersByUser = async (userId: string) => {
+  try {
+    const q = query(
+      ordersCollection,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Order[];
+  } catch (error) {
+    console.error('Error getting orders by user:', error);
+    throw error;
+  }
+};
+
+export const getOrdersByBar = async (barId: string) => {
+  try {
+    const q = query(
+      ordersCollection,
+      where('barId', '==', barId),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    const orders = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Order[];
+    return orders;
+  } catch (error) {
+    console.error('Error getting orders by bar:', error);
+    throw error;
+  }
+};
+
+export const updateOrderStatus = async (id: string, status: Order['status']) => {
+  try {
+    const docRef = doc(db, 'orders', id);
+    await updateDoc(docRef, {
+      status,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error updating order status:', error);
     throw error;
   }
 };
@@ -273,12 +392,108 @@ export const getReviewsByBar = async (barId: string) => {
       orderBy('createdAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Review[];
+    
+    // Fetch user data for each review
+    const reviewsWithUsers = await Promise.all(
+      querySnapshot.docs.map(async (reviewDoc) => {
+        const reviewData = reviewDoc.data() as Review;
+        const review = {
+          id: reviewDoc.id,
+          ...reviewData
+        };
+        
+        // Fetch user data
+        try {
+          const userDoc = await getDoc(doc(db, 'users', reviewData.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as {
+              uid: string;
+              firstName: string;
+              lastName: string;
+              email: string | null;
+              type: 'user' | 'owner';
+              avatar?: string;
+            };
+            return {
+              ...review,
+              user: {
+                uid: userData.uid,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                email: userData.email,
+                type: userData.type,
+                avatar: userData.avatar,
+                displayName: `${userData.firstName} ${userData.lastName}`,
+                photoURL: userData.avatar,
+                isVerified: userData.type === 'owner' // Owners are verified
+              }
+            };
+          } else {
+            // User not found, return review with anonymous user
+            return {
+              ...review,
+              user: {
+                uid: reviewData.userId,
+                firstName: 'Anonymous',
+                lastName: 'User',
+                email: null,
+                type: 'user',
+                avatar: null,
+                displayName: 'Anonymous User',
+                photoURL: null,
+                isVerified: false
+              }
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching user data for review:', error);
+          // Return review with anonymous user if user fetch fails
+          return {
+            ...review,
+            user: {
+              uid: reviewData.userId,
+              firstName: 'Anonymous',
+              lastName: 'User',
+              email: null,
+              type: 'user',
+              avatar: null,
+              displayName: 'Anonymous User',
+              photoURL: null,
+              isVerified: false
+            }
+          };
+        }
+      })
+    );
+    
+    return reviewsWithUsers;
   } catch (error) {
     console.error('Error getting reviews by bar:', error);
+    throw error;
+  }
+};
+
+// Get reviews for multiple bars
+export const getReviewsForMultipleBars = async (barIds: string[]) => {
+  try {
+    const reviewsByBar: { [barId: string]: any[] } = {};
+    
+    // Get reviews for each bar
+    await Promise.all(
+      barIds.map(async (barId) => {
+        try {
+          const reviews = await getReviewsByBar(barId);
+          reviewsByBar[barId] = reviews;
+        } catch (error) {
+          console.error(`Error getting reviews for bar ${barId}:`, error);
+          reviewsByBar[barId] = [];
+        }
+      })
+    );
+    
+    return reviewsByBar;
+  } catch (error) {
+    console.error('Error getting reviews for multiple bars:', error);
     throw error;
   }
 };
@@ -348,5 +563,184 @@ export const isFavorite = async (userId: string, barId: string) => {
   } catch (error) {
     console.error('Error checking favorite status:', error);
     return false;
+  }
+};
+
+// Sample data creation function
+export const createSampleBeachBars = async () => {
+  const sampleBars = [
+    {
+      ownerId: 'sample-owner-1',
+      name: 'Sunset Paradise',
+      location: 'Santorini, Greece',
+      description: 'Iconic cliffside bar with breathtaking sunset views and world-class cocktails.',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800',
+      amenities: ['Infinity Pool', 'Live DJ', 'Sunset Views', 'Premium Service'],
+      category: 'premium' as const,
+      rating: 4.9,
+      reviewCount: 128,
+      priceRange: 'high' as const,
+      coordinates: {
+        latitude: 36.3932,
+        longitude: 25.4615
+      },
+      sunbeds: [
+        { id: 'A1', type: 'Premium', price: 45, available: true },
+        { id: 'A2', type: 'Premium', price: 45, available: true },
+        { id: 'A3', type: 'Standard', price: 35, available: false },
+        { id: 'B1', type: 'Premium', price: 45, available: true },
+        { id: 'B2', type: 'Standard', price: 35, available: true },
+      ],
+      umbrellas: [
+        { id: 'U1', type: 'Large', price: 25, available: true },
+        { id: 'U2', type: 'Standard', price: 20, available: true },
+        { id: 'U3', type: 'Large', price: 25, available: false },
+        { id: 'U4', type: 'Standard', price: 20, available: true },
+      ],
+      menuItems: [
+        {
+          id: 'drink-1',
+          name: 'Santorini Sunset',
+          price: 18,
+          description: 'Local wine with fresh herbs',
+          category: 'drinks' as const,
+          available: true,
+        },
+        {
+          id: 'food-1',
+          name: 'Greek Meze Platter',
+          price: 28,
+          description: 'Assorted Mediterranean appetizers',
+          category: 'food' as const,
+          available: true,
+        },
+      ],
+    },
+    {
+      ownerId: 'sample-owner-2',
+      name: 'Ocean Breeze',
+      location: 'Bali, Indonesia',
+      description: 'Tropical beachfront bar with fresh seafood and exotic cocktails.',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800',
+      amenities: ['Beach Access', 'Water Sports', 'Live Music', 'Spa Services'],
+      category: 'standard' as const,
+      rating: 4.7,
+      reviewCount: 89,
+      priceRange: 'medium' as const,
+      coordinates: {
+        latitude: -8.3405,
+        longitude: 115.0920
+      },
+      sunbeds: [
+        { id: 'C1', type: 'Premium', price: 40, available: true },
+        { id: 'C2', type: 'Standard', price: 30, available: true },
+        { id: 'C3', type: 'Standard', price: 30, available: false },
+      ],
+      umbrellas: [
+        { id: 'U5', type: 'Large', price: 20, available: true },
+        { id: 'U6', type: 'Standard', price: 15, available: true },
+      ],
+      menuItems: [
+        {
+          id: 'drink-2',
+          name: 'Bali Bliss',
+          price: 15,
+          description: 'Coconut rum with tropical fruits',
+          category: 'drinks' as const,
+          available: true,
+        },
+        {
+          id: 'food-2',
+          name: 'Grilled Mahi Mahi',
+          price: 32,
+          description: 'Fresh local fish with rice',
+          category: 'food' as const,
+          available: true,
+        },
+      ],
+    },
+  ];
+
+  for (const barData of sampleBars) {
+    try {
+      await createBeachBar(barData);
+      console.log(`Created beach bar: ${barData.name}`);
+    } catch (error) {
+      console.error(`Error creating beach bar ${barData.name}:`, error);
+    }
+  }
+};
+
+// Sample reviews creation function
+export const createSampleReviews = async () => {
+  const sampleUsers = [
+    {
+      uid: 'user-1',
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      email: 'sarah@example.com',
+      type: 'user' as const,
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b5e5?w=80&h=80&fit=crop&crop=face',
+    },
+    {
+      uid: 'user-2',
+      firstName: 'Marcus',
+      lastName: 'Chen',
+      email: 'marcus@example.com',
+      type: 'user' as const,
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
+    },
+    {
+      uid: 'user-3',
+      firstName: 'Emma',
+      lastName: 'Rodriguez',
+      email: 'emma@example.com',
+      type: 'user' as const,
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face',
+    },
+  ];
+
+  // Create sample users first
+  for (const userData of sampleUsers) {
+    try {
+      await setDoc(doc(db, 'users', userData.uid), {
+        ...userData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      console.log(`Created user: ${userData.firstName} ${userData.lastName}`);
+    } catch (error) {
+      console.error(`Error creating user ${userData.firstName}:`, error);
+    }
+  }
+
+  const sampleReviews = [
+    {
+      userId: 'user-1',
+      barId: 'sample-bar-1', // You'll need to replace with actual bar ID
+      rating: 5,
+      comment: 'Absolutely stunning sunset views! The service was impeccable and the cocktails were amazing. Highly recommend for a romantic evening.',
+    },
+    {
+      userId: 'user-2',
+      barId: 'sample-bar-1',
+      rating: 4,
+      comment: 'Great atmosphere and friendly staff. The food was delicious and the location is perfect for watching the sunset.',
+    },
+    {
+      userId: 'user-3',
+      barId: 'sample-bar-1',
+      rating: 5,
+      comment: 'This place exceeded all expectations! The infinity pool overlooking the sea was breathtaking. Will definitely return.',
+    },
+  ];
+
+  for (const reviewData of sampleReviews) {
+    try {
+      await createReview(reviewData);
+      console.log(`Created review for user: ${reviewData.userId}`);
+    } catch (error) {
+      console.error(`Error creating review for user ${reviewData.userId}:`, error);
+    }
   }
 }; 

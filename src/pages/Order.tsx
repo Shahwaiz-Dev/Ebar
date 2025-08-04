@@ -10,6 +10,9 @@ import { Plus, Minus, MapPin, Star, Users, ShoppingCart } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useBeachBar } from '@/hooks/useBeachBars';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCreateOrder } from '@/hooks/useBookings';
+import { toast } from 'sonner';
 import featuredBar1 from '@/assets/featured-bar-1.jpg';
 import featuredBar2 from '@/assets/featured-bar-2.jpg';
 import featuredBar3 from '@/assets/featured-bar-3.jpg';
@@ -20,8 +23,6 @@ const getBarImage = (barName: string) => {
   if (barName.includes('Azure') || barName.includes('Club')) return featuredBar2;
   return featuredBar3;
 };
-
-
 
 interface CartItem {
   id: string;
@@ -34,13 +35,18 @@ interface CartItem {
 export const OrderPage = () => {
   const { barId } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [sunbedNumber, setSunbedNumber] = useState('');
   const [umbrellaNumber, setUmbrellaNumber] = useState('');
   const [activeTab, setActiveTab] = useState<'drinks' | 'food'>('drinks');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
 
   // Fetch the specific bar using Firebase data
   const { data: selectedBar, isLoading, error } = useBeachBar(barId || '');
+  const createOrderMutation = useCreateOrder();
 
   if (isLoading) {
     return (
@@ -105,24 +111,58 @@ export const OrderPage = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const handleProceedToPayment = () => {
-    if (cart.length === 0) {
-      alert('Please add items to your cart');
+  const handleProceedToPayment = async () => {
+    if (!currentUser) {
+      toast.error('Please log in to place an order');
+      navigate('/auth');
       return;
     }
-    
-    const orderData = {
-      barId: selectedBar.id,
+
+    if (cart.length === 0) {
+      toast.error('Please add items to your cart');
+      return;
+    }
+
+    if (!customerName || !customerEmail || !customerPhone) {
+      toast.error('Please fill in all customer details');
+      return;
+    }
+
+    const orderData: any = {
+      userId: currentUser.uid,
+      barId: selectedBar.id!,
       barName: selectedBar.name,
-      sunbedNumber,
-      umbrellaNumber,
-      items: cart,
+      customerName,
+      customerEmail,
+      customerPhone,
+      items: cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        category: item.category as 'drinks' | 'food'
+      })),
       total: getTotalPrice(),
+      status: 'pending' as const,
     };
-    
-    // Store order data in localStorage for payment page
-    localStorage.setItem('currentOrder', JSON.stringify(orderData));
-    navigate('/payment');
+
+    if (sunbedNumber || umbrellaNumber) {
+      orderData.deliveryLocation = {};
+      if (sunbedNumber) {
+        orderData.deliveryLocation.sunbedNumber = sunbedNumber;
+      }
+      if (umbrellaNumber) {
+        orderData.deliveryLocation.umbrellaNumber = umbrellaNumber;
+      }
+    }
+
+    try {
+      await createOrderMutation.mutateAsync(orderData);
+      toast.success('Food order placed successfully! Please wait for confirmation.');
+      navigate('/booking-history');
+    } catch (error) {
+      toast.error('Failed to place order. Please try again.');
+    }
   };
 
   return (
@@ -227,6 +267,44 @@ export const OrderPage = () => {
 
             {/* Cart & Location Section */}
             <div className="space-y-6">
+              {/* Customer Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Customer Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="customerName">Full Name</Label>
+                    <Input
+                      id="customerName"
+                      placeholder="Enter your full name"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="customerEmail">Email</Label>
+                    <Input
+                      id="customerEmail"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="customerPhone">Phone Number</Label>
+                    <Input
+                      id="customerPhone"
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Location Selection */}
               <Card>
                 <CardHeader>
@@ -308,11 +386,11 @@ export const OrderPage = () => {
 
               <Button
                 onClick={handleProceedToPayment}
-                disabled={cart.length === 0}
+                disabled={cart.length === 0 || !customerName || !customerEmail || !customerPhone}
                 className="w-full"
                 size="lg"
               >
-                Proceed to Payment
+                Place Order
               </Button>
             </div>
           </div>

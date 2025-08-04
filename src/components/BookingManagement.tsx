@@ -2,38 +2,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, Users, MapPin } from 'lucide-react';
+import { Calendar, Clock, Users, MapPin, Check, X } from 'lucide-react';
+import { useBookingsByBar, useUpdateBookingStatus } from '@/hooks/useBookings';
+import { toast } from 'sonner';
 
 interface BookingManagementProps {
   barId: string;
 }
 
 export const BookingManagement = ({ barId }: BookingManagementProps) => {
-  // Mock booking data - in real app, this would come from Firestore
-  const mockBookings = [
-    {
-      id: '1',
-      customerName: 'John Doe',
-      customerEmail: 'john@example.com',
-      date: '2024-01-15',
-      time: '14:00',
-      guests: 4,
-      type: 'sunbed' as const,
-      status: 'confirmed' as const,
-      total: 100
-    },
-    {
-      id: '2',
-      customerName: 'Jane Smith',
-      customerEmail: 'jane@example.com',
-      date: '2024-01-16',
-      time: '10:00',
-      guests: 2,
-      type: 'umbrella' as const,
-      status: 'pending' as const,
-      total: 50
-    }
-  ];
+  const { data: bookings = [], isLoading } = useBookingsByBar(barId);
+  const updateBookingStatusMutation = useUpdateBookingStatus();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -45,80 +24,120 @@ export const BookingManagement = ({ barId }: BookingManagementProps) => {
     }
   };
 
-  const updateBookingStatus = (bookingId: string, newStatus: string) => {
-    // In real app, this would update the booking in Firestore
-    console.log(`Updating booking ${bookingId} to status: ${newStatus}`);
+  const handleUpdateBookingStatus = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'completed' | 'cancelled') => {
+    try {
+      await updateBookingStatusMutation.mutateAsync({ id: bookingId, status: newStatus });
+      toast.success(`Booking ${newStatus} successfully!`);
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      toast.error('Failed to update booking status. Please try again.');
+    }
   };
+
+  const handleAcceptBooking = (bookingId: string) => {
+    handleUpdateBookingStatus(bookingId, 'confirmed');
+  };
+
+  const handleRejectBooking = (bookingId: string) => {
+    handleUpdateBookingStatus(bookingId, 'cancelled');
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Bookings</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading bookings...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Bookings</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Recent Bookings</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {mockBookings.map((booking) => (
-          <div key={booking.id} className="border rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold">{booking.customerName}</h4>
-                <p className="text-sm text-muted-foreground">{booking.customerEmail}</p>
+        {bookings.map((booking) => (
+          <div key={booking.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-sm sm:text-base truncate">{booking.customerName}</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{booking.customerEmail}</p>
               </div>
-              <Badge className={getStatusColor(booking.status)}>
+              <Badge className={`${getStatusColor(booking.status)} text-xs`}>
                 {booking.status}
               </Badge>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>{booking.date}</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{booking.date}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>{booking.time}</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{booking.time}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span>{booking.guests} guests</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{booking.guests} guests</span>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>{booking.type}</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{booking.type}</span>
               </div>
             </div>
             
-            <div className="flex items-center justify-between pt-2 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t">
               <div>
-                <span className="font-semibold">${booking.total}</span>
+                <span className="font-semibold text-sm sm:text-base">${booking.total}</span>
               </div>
               <div className="flex gap-2">
-                <Select 
-                  value={booking.status} 
-                  onValueChange={(value) => updateBookingStatus(booking.id, value)}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button size="sm" variant="outline">
-                  View Details
-                </Button>
+                {booking.status === 'pending' && (
+                  <>
+                    <Button
+                      size="sm"
+                      className="text-xs h-7 sm:h-8"
+                      onClick={() => handleAcceptBooking(booking.id!)}
+                    >
+                      <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                      Accept
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="text-xs h-7 sm:h-8"
+                      onClick={() => handleRejectBooking(booking.id!)}
+                    >
+                      <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                      Reject
+                    </Button>
+                  </>
+                )}
+                {booking.status === 'confirmed' && (
+                  <Button
+                    size="sm"
+                    className="text-xs h-7 sm:h-8"
+                    onClick={() => handleUpdateBookingStatus(booking.id!, 'completed')}
+                  >
+                    Mark Complete
+                  </Button>
+                )}
               </div>
             </div>
           </div>
         ))}
         
-        {mockBookings.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No bookings yet</p>
-            <p className="text-sm">Bookings will appear here when customers make reservations</p>
+        {bookings.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground text-sm sm:text-base">No bookings found</p>
           </div>
         )}
       </CardContent>

@@ -35,8 +35,10 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeachBarsByOwner, useDeleteBeachBar, useUpdateBeachBar } from '@/hooks/useBeachBars';
 import { useBookingsByBar } from '@/hooks/useBookings';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { BeachBar } from '@/lib/firestore';
-
+import { createSampleBeachBars } from '@/lib/firestore';
+import { OrderManagement } from '@/components/OrderManagement';
 
 
 export const DashboardPage = () => {
@@ -52,6 +54,9 @@ export const DashboardPage = () => {
   const { data: bars = [], isLoading: barsLoading } = useBeachBarsByOwner(currentUser?.uid || '');
   const deleteBeachBarMutation = useDeleteBeachBar();
   const updateBeachBarMutation = useUpdateBeachBar();
+
+  // Fetch dashboard statistics
+  const { data: stats, isLoading: statsLoading } = useDashboardStats(currentUser?.uid || '');
 
   useEffect(() => {
     // Check if user is authenticated and is a bar owner
@@ -72,30 +77,6 @@ export const DashboardPage = () => {
       setSelectedBar(bars[0]);
     }
   }, [bars, selectedBar]);
-
-  // Show loading while authentication state is being determined
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading while bars are being fetched
-  if (barsLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your beach bars...</p>
-        </div>
-      </div>
-    );
-  }
 
   const handleLogout = async () => {
     try {
@@ -183,84 +164,33 @@ export const DashboardPage = () => {
   };
 
   const handleUpdateBookingStatus = (bookingId: string, status: any) => {
-    // Mock booking update - in real app, this would update the database
-    toast.success(`Booking ${status} successfully!`);
+    // This is handled by the BookingManagement component
+    console.log('Booking status update handled by BookingManagement component');
   };
 
-  // Mock data for analytics
-  const analyticsData = {
-    revenue: {
-      daily: 450,
-      weekly: 3200,
-      monthly: 12400,
-      trend: 'up' as const,
-      percentage: 12
-    },
-    bookings: {
-      total: 156,
-      pending: 24,
-      confirmed: 89,
-      completed: 43,
-      trend: 'up' as const,
-      percentage: 8
-    },
-    customers: {
-      total: 89,
-      new: 23,
-      returning: 66,
-      trend: 'up' as const,
-      percentage: 15
-    },
-    popularItems: [
-      { name: 'Sunset Margarita', orders: 45, revenue: 540, category: 'drinks' },
-      { name: 'Pina Colada', orders: 38, revenue: 380, category: 'drinks' },
-      { name: 'Grilled Fish Tacos', orders: 32, revenue: 576, category: 'food' },
-    ],
-    topBars: [
-      { name: 'Sunset Paradise', bookings: 67, revenue: 3200, rating: 4.9 },
-      { name: 'Azure Beach Club', bookings: 45, revenue: 2800, rating: 4.8 },
-      { name: 'Tiki Cove', bookings: 34, revenue: 1800, rating: 4.7 },
-    ]
-  };
+  // Show loading while authentication state is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Mock bookings data
-  const mockBookings = [
-    {
-      id: '1',
-      customerName: 'John Smith',
-      customerEmail: 'john@example.com',
-      customerPhone: '+1 555-0123',
-      barName: 'Sunset Paradise',
-      date: '2024-01-15',
-      time: '14:00',
-      guests: 2,
-      type: 'sunbed' as const,
-      spotId: 'A1',
-      total: 45,
-      status: 'confirmed' as const,
-      createdAt: '2024-01-10T10:00:00Z'
-    },
-    {
-      id: '2',
-      customerName: 'Sarah Johnson',
-      customerEmail: 'sarah@example.com',
-      customerPhone: '+1 555-0124',
-      barName: 'Sunset Paradise',
-      date: '2024-01-15',
-      time: '15:30',
-      guests: 4,
-      type: 'food_order' as const,
-      items: [
-        { name: 'Sunset Margarita', quantity: 2, price: 12 },
-        { name: 'Grilled Fish Tacos', quantity: 1, price: 18 }
-      ],
-      total: 42,
-      status: 'pending' as const,
-      createdAt: '2024-01-10T11:30:00Z'
-    }
-  ];
-
-
+  // Show loading while bars are being fetched
+  if (barsLoading || statsLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your beach bars...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
@@ -293,7 +223,7 @@ export const DashboardPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Bars</p>
-                    <p className="text-2xl font-bold">{bars.length}</p>
+                    <p className="text-2xl font-bold">{stats?.totalBars || 0}</p>
                   </div>
                   <Building2 className="h-8 w-8 text-primary" />
                 </div>
@@ -304,7 +234,7 @@ export const DashboardPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Active Bookings</p>
-                    <p className="text-2xl font-bold">24</p>
+                    <p className="text-2xl font-bold">{stats?.activeBookings || 0}</p>
                   </div>
                   <BarChart3 className="h-8 w-8 text-green-500" />
                 </div>
@@ -315,7 +245,7 @@ export const DashboardPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Today's Revenue</p>
-                    <p className="text-2xl font-bold">$1,240</p>
+                    <p className="text-2xl font-bold">${stats?.todayRevenue?.toLocaleString() || 0}</p>
                   </div>
                   <BarChart3 className="h-8 w-8 text-blue-500" />
                 </div>
@@ -326,7 +256,7 @@ export const DashboardPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Customers</p>
-                    <p className="text-2xl font-bold">156</p>
+                    <p className="text-2xl font-bold">{stats?.totalCustomers || 0}</p>
                   </div>
                   <Users className="h-8 w-8 text-orange-500" />
                 </div>
@@ -439,8 +369,8 @@ export const DashboardPage = () => {
                                 <p className="font-semibold">{selectedBar.menuItems.length}</p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">Today's Orders</p>
-                                <p className="font-semibold">12</p>
+                                <p className="text-muted-foreground">Rating</p>
+                                <p className="font-semibold">{selectedBar.rating} ({selectedBar.reviewCount} reviews)</p>
                               </div>
                             </div>
                           </div>
@@ -448,17 +378,17 @@ export const DashboardPage = () => {
 
                         {/* Availability Management */}
                         <div className="mt-6">
-                          <h3 className="font-semibold mb-3">Availability Management</h3>
+                          <h3 className="font-semibold mb-3 text-base sm:text-lg">Availability Management</h3>
                           <div className="space-y-4">
                             <div>
                               <h4 className="text-sm font-medium mb-2">Sunbeds</h4>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                                 {selectedBar.sunbeds.map((sunbed) => (
                                   <Button
                                     key={sunbed.id}
                                     variant={sunbed.available ? "default" : "secondary"}
                                     size="sm"
-                                    className="text-xs"
+                                    className="text-xs h-8 sm:h-9"
                                     onClick={() => handleToggleAvailability(sunbed.id, 'sunbed')}
                                   >
                                     {sunbed.id} - ${sunbed.price}
@@ -468,13 +398,13 @@ export const DashboardPage = () => {
                             </div>
                             <div>
                               <h4 className="text-sm font-medium mb-2">Umbrellas</h4>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                                 {selectedBar.umbrellas.map((umbrella) => (
                                   <Button
                                     key={umbrella.id}
                                     variant={umbrella.available ? "default" : "secondary"}
                                     size="sm"
-                                    className="text-xs"
+                                    className="text-xs h-8 sm:h-9"
                                     onClick={() => handleToggleAvailability(umbrella.id, 'umbrella')}
                                   >
                                     {umbrella.id} - ${umbrella.price}
@@ -484,120 +414,157 @@ export const DashboardPage = () => {
                             </div>
                           </div>
                         </div>
+
+                        {/* Sample Data Button for Testing */}
+                        {bars.length === 0 && (
+                          <div className="mt-6">
+                            <Button 
+                              onClick={createSampleBeachBars}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              Create Sample Beach Bars (Testing)
+                            </Button>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   )}
                 </TabsContent>
 
-                {/* Bookings Tab */}
+                {/* Bookings & Orders Management */}
                 <TabsContent value="bookings" className="space-y-6">
-                  <BookingManagement 
-                    bookings={mockBookings}
-                    onUpdateStatus={handleUpdateBookingStatus}
-                  />
+                  {selectedBar ? (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                      <BookingManagement barId={selectedBar.id!} />
+                      <OrderManagement barId={selectedBar.id!} />
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground text-sm sm:text-base">Please select a bar to view bookings and orders</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Analytics Tab */}
                 <TabsContent value="analytics" className="space-y-6">
-                  <Analytics data={analyticsData} />
+                  {selectedBar ? (
+                    <Analytics barId={selectedBar.id!} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Please select a bar to view analytics</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* QR Codes Tab */}
                 <TabsContent value="qr-codes" className="space-y-6">
-                  {/* General QR Code */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>General QR Code</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex justify-center">
-                        {selectedBar && (
-                          <QRCodeGenerator
-                            barId={selectedBar.id!}
-                            barName={selectedBar.name}
-                            type="menu"
-                          />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {selectedBar ? (
+                    <>
+                      {/* General QR Code */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>General QR Code</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex justify-center">
+                            <QRCodeGenerator
+                              barId={selectedBar.id!}
+                              barName={selectedBar.name}
+                              type="menu"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                  {/* Individual Spot QR Codes */}
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>Spot-Specific QR Codes</CardTitle>
-                        <Button size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download All
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {selectedBar?.sunbeds.map((sunbed) => (
-                          <QRCodeDemo
-                            key={sunbed.id}
-                            barId={selectedBar.id!}
-                            barName={selectedBar.name}
-                            sunbedId={sunbed.id}
-                          />
-                        ))}
-                        {selectedBar?.umbrellas.map((umbrella) => (
-                          <QRCodeDemo
-                            key={umbrella.id}
-                            barId={selectedBar.id!}
-                            barName={selectedBar.name}
-                            umbrellaId={umbrella.id}
-                          />
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                      {/* Individual Spot QR Codes */}
+                      <Card>
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle>Spot-Specific QR Codes</CardTitle>
+                            <Button size="sm">
+                              <Download className="h-4 w-4 mr-2" />
+                              Download All
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {selectedBar.sunbeds.map((sunbed) => (
+                              <QRCodeDemo
+                                key={sunbed.id}
+                                barId={selectedBar.id!}
+                                barName={selectedBar.name}
+                                sunbedId={sunbed.id}
+                              />
+                            ))}
+                            {selectedBar.umbrellas.map((umbrella) => (
+                              <QRCodeDemo
+                                key={umbrella.id}
+                                barId={selectedBar.id!}
+                                barName={selectedBar.name}
+                                umbrellaId={umbrella.id}
+                              />
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Please select a bar to view QR codes</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Menu Tab */}
                 <TabsContent value="menu" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>Menu Items</CardTitle>
-                        <Button size="sm" onClick={() => setShowAddMenuItem(true)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Item
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {selectedBar?.menuItems.map((item) => (
-                          <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold">{item.name}</h3>
-                                <Badge variant="secondary">{item.category}</Badge>
+                  {selectedBar ? (
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>Menu Items</CardTitle>
+                          <Button size="sm" onClick={() => setShowAddMenuItem(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Item
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {selectedBar.menuItems.map((item) => (
+                            <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold">{item.name}</h3>
+                                  <Badge variant="secondary">{item.category}</Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{item.description}</p>
+                                <p className="text-lg font-bold text-primary mt-1">${item.price}</p>
                               </div>
-                              <p className="text-sm text-muted-foreground">{item.description}</p>
-                              <p className="text-lg font-bold text-primary mt-1">${item.price}</p>
+                              <div className="flex items-center gap-2">
+                                <Button size="sm" variant="outline">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-red-500"
+                                  onClick={() => handleDeleteMenuItem(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button size="sm" variant="outline">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="text-red-500"
-                                onClick={() => handleDeleteMenuItem(item.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Please select a bar to view menu items</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Settings Tab */}
