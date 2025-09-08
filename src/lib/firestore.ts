@@ -53,6 +53,10 @@ export interface BeachBar {
     category: 'drinks' | 'food';
     available: boolean;
   }>;
+  // Stripe Connect fields
+  stripeAccountId?: string;
+  isStripeConnected: boolean;
+  platformFeePercentage: number; // e.g., 15 for 15%
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -71,6 +75,12 @@ export interface Booking {
   type: 'sunbed' | 'umbrella';
   spotId: string;
   total: number;
+  // Platform fee fields
+  platformFee: number;
+  barOwnerPayout: number;
+  platformFeePercentage: number;
+  stripePaymentIntentId?: string;
+  stripeTransferId?: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -92,6 +102,12 @@ export interface Order {
     category: 'drinks' | 'food';
   }>;
   total: number;
+  // Platform fee fields
+  platformFee: number;
+  barOwnerPayout: number;
+  platformFeePercentage: number;
+  stripePaymentIntentId?: string;
+  stripeTransferId?: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   deliveryLocation?: {
     sunbedNumber?: string;

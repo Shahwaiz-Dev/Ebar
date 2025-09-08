@@ -41,9 +41,19 @@ interface StripePaymentFormProps {
   onError: (error: string) => void;
   buttonText?: string;
   metadata?: Record<string, string>;
+  barOwnerAccountId?: string;
+  platformFeePercentage?: number;
 }
 
-const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata = {} }: StripePaymentFormProps) => {
+const PaymentForm = ({ 
+  amount, 
+  onSuccess, 
+  onError, 
+  buttonText = 'Pay', 
+  metadata = {},
+  barOwnerAccountId,
+  platformFeePercentage = 15
+}: StripePaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -85,6 +95,8 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
             ...metadata,
             email: email,
           },
+          barOwnerAccountId,
+          platformFeePercentage,
         }),
       });
 

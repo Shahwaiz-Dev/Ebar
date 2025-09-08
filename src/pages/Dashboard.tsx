@@ -39,6 +39,7 @@ import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { BeachBar } from '@/lib/firestore';
 import { createSampleBeachBars } from '@/lib/firestore';
 import { OrderManagement } from '@/components/OrderManagement';
+import { StripeConnectDashboard } from '@/components/StripeConnectDashboard';
 
 
 export const DashboardPage = () => {
@@ -321,12 +322,13 @@ export const DashboardPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="bookings">Bookings</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                   <TabsTrigger value="qr-codes">QR Codes</TabsTrigger>
                   <TabsTrigger value="menu">Menu</TabsTrigger>
+                  <TabsTrigger value="payments">Payments</TabsTrigger>
                   <TabsTrigger value="settings">Settings</TabsTrigger>
                 </TabsList>
 
@@ -565,6 +567,11 @@ export const DashboardPage = () => {
                       <p className="text-muted-foreground">Please select a bar to view menu items</p>
                     </div>
                   )}
+                </TabsContent>
+
+                {/* Payments Tab */}
+                <TabsContent value="payments" className="space-y-6">
+                  <StripeConnectDashboard />
                 </TabsContent>
 
                 {/* Settings Tab */}
