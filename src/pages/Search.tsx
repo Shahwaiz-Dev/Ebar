@@ -9,12 +9,10 @@ import {
   MapPin, 
   Star, 
   Users, 
-  Filter, 
   SortAsc, 
   SortDesc,
   Heart,
   HeartOff,
-  SlidersHorizontal,
   X,
   Sun,
   Umbrella,
@@ -44,23 +42,6 @@ const getBarImage = (barName: string) => {
   return featuredBar3;
 };
 
-// Available amenities for filtering
-const availableAmenities = [
-  'Infinity Pool', 'Live DJ', 'Sunset Views', 'Beachfront', 'Fine Dining',
-  'Beach Beds', 'VIP Service', 'Tiki Bar', 'Live Music', 'Local Cuisine',
-  'Spa Services', 'Overwater', 'Coral Views', 'Fresh Seafood', 'Snorkeling',
-  'Casual Dining', 'Happy Hour'
-];
-
-// Sort options
-const sortOptions = [
-  { value: 'rating', label: 'Rating (High to Low)', icon: SortDesc },
-  { value: 'rating-asc', label: 'Rating (Low to High)', icon: SortAsc },
-  { value: 'price', label: 'Price (High to Low)', icon: SortDesc },
-  { value: 'price-asc', label: 'Price (Low to High)', icon: SortAsc },
-  { value: 'distance', label: 'Distance (Near to Far)', icon: SortAsc },
-  { value: 'reviews', label: 'Most Reviews', icon: SortDesc },
-];
 
 export const SearchPage = () => {
   const { currentUser } = useAuth();
@@ -71,10 +52,6 @@ export const SearchPage = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredBars, setFilteredBars] = useState(beachBars);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
   const navigate = useNavigate();
 
@@ -120,26 +97,12 @@ export const SearchPage = () => {
 
   const applyFilters = (searchValue = searchTerm) => {
     let filtered = beachBars.filter(bar => {
-      // Search filter - search by bar name and location
+      // Search filter - search by bar name and location only
       const matchesSearch = searchValue === '' || 
         bar.name.toLowerCase().includes(searchValue.toLowerCase()) ||
         bar.location.toLowerCase().includes(searchValue.toLowerCase());
 
-      // Amenities filter
-      const matchesAmenities = selectedAmenities.length === 0 ||
-        selectedAmenities.every(amenity => bar.amenities.includes(amenity));
-
-      // Price filter - use sunbed prices as reference
-      const avgPrice = bar.sunbeds.length > 0 
-        ? bar.sunbeds.reduce((sum, bed) => sum + bed.price, 0) / bar.sunbeds.length 
-        : 50;
-      const matchesPrice = avgPrice >= priceRange[0] && avgPrice <= priceRange[1];
-
-      // Category filter
-      const matchesCategory = selectedCategories.length === 0 ||
-        selectedCategories.includes(bar.category);
-
-      return matchesSearch && matchesAmenities && matchesPrice && matchesCategory;
+      return matchesSearch;
     });
 
     // Apply sorting
@@ -186,11 +149,7 @@ export const SearchPage = () => {
     setFilteredBars(sorted);
   };
 
-  const clearFilters = () => {
-    setSelectedAmenities([]);
-    setPriceRange([0, 200]);
-    setSelectedCategories([]);
-    setSortBy('rating');
+  const clearSearch = () => {
     setSearchTerm('');
     setFilteredBars(beachBars);
   };
@@ -234,139 +193,10 @@ export const SearchPage = () => {
                   className="w-full"
                 />
                 
-                {/* Action Buttons */}
-                <div className="flex gap-4 justify-center">
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="h-12 px-6"
-                    onClick={() => setShowFilters(!showFilters)}
-                  >
-                    <Filter className="h-5 w-5 mr-2" />
-                    Filters
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Filters Panel */}
-          {showFilters && (
-            <Card className="mb-8">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <SlidersHorizontal className="h-5 w-5" />
-                    Filters & Sorting
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    <X className="h-4 w-4 mr-2" />
-                    Clear All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Sort Options */}
-                <div>
-                  <h3 className="font-semibold mb-3">Sort By</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {sortOptions.map((option) => {
-                      const Icon = option.icon;
-                      return (
-                        <Button
-                          key={option.value}
-                          variant={sortBy === option.value ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleSortChange(option.value)}
-                          className="justify-start"
-                        >
-                          <Icon className="h-4 w-4 mr-2" />
-                          {option.label}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Price Range */}
-                <div>
-                  <h3 className="font-semibold mb-3">Price Range</h3>
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="number"
-                      placeholder="Min"
-                      value={priceRange[0]}
-                      onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                      className="w-24"
-                    />
-                    <span>to</span>
-                    <Input
-                      type="number"
-                      placeholder="Max"
-                      value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                      className="w-24"
-                    />
-                    <Button size="sm" onClick={() => applyFilters()}>
-                      Apply
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Categories */}
-                <div>
-                  <h3 className="font-semibold mb-3">Categories</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['Luxury', 'Premium', 'Tropical', 'Relaxed', 'Casual'].map((category) => (
-                      <Button
-                        key={category}
-                        variant={selectedCategories.includes(category) ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setSelectedCategories(prev => 
-                            prev.includes(category)
-                              ? prev.filter(c => c !== category)
-                              : [...prev, category]
-                          );
-                        }}
-                      >
-                        {category}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Amenities */}
-                <div>
-                  <h3 className="font-semibold mb-3">Amenities</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {availableAmenities.map((amenity) => (
-                      <Button
-                        key={amenity}
-                        variant={selectedAmenities.includes(amenity) ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAmenities(prev => 
-                            prev.includes(amenity)
-                              ? prev.filter(a => a !== amenity)
-                              : [...prev, amenity]
-                          );
-                        }}
-                      >
-                        {amenity}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
 
           {/* Results Summary */}
@@ -488,10 +318,10 @@ export const SearchPage = () => {
                 No beach bars found
               </h3>
               <p className="text-muted-foreground mb-4">
-                Try adjusting your search terms or filters
+                Try adjusting your search terms
               </p>
-              <Button onClick={clearFilters} variant="outline">
-                Clear All Filters
+              <Button onClick={clearSearch} variant="outline">
+                Clear Search
               </Button>
             </div>
           )}

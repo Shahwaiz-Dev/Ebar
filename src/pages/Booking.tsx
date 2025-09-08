@@ -39,10 +39,9 @@ export const BookingPage = () => {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
 
-  // Filter bars based on search term
+  // Filter bars based on search term (name only)
   const filteredBars = beachBars.filter(bar =>
-    bar.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bar.location.toLowerCase().includes(searchTerm.toLowerCase())
+    bar.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSearch = (value: string) => {
@@ -191,15 +190,12 @@ export const BookingPage = () => {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       type="text"
-                      placeholder="Search beach bars..."
+                      placeholder="Search beach bars by name..."
                       value={searchTerm}
                       onChange={(e) => handleSearch(e.target.value)}
                       className="pl-10 h-12 text-lg"
                     />
                   </div>
-                  <Button variant="sunset" size="lg" className="h-12 px-8">
-                    Search
-                  </Button>
                 </div>
               </div>
 
