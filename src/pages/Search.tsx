@@ -20,8 +20,13 @@ import {
   Umbrella,
   TrendingUp,
   Clock,
-  DollarSign
+  DollarSign,
+  Map,
+  Navigation
 } from 'lucide-react';
+import { GoogleMapsSearch } from '@/components/GoogleMapsSearch';
+import { GoogleMapsMap } from '@/components/GoogleMapsMap';
+import { PlaceResult } from '@/lib/googleMaps';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -74,6 +79,17 @@ export const SearchPage = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
+  const [showMap, setShowMap] = useState(false);
+  const [locationFilter, setLocationFilter] = useState<{
+    lat: number;
+    lng: number;
+    address: string;
+    radius: number; // in kilometers
+  } | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const navigate = useNavigate();
 
   // Update filtered bars when beachBars data changes
@@ -81,9 +97,66 @@ export const SearchPage = () => {
     setFilteredBars(beachBars);
   }, [beachBars]);
 
+  // Get current location on component mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error('Error getting current location:', error);
+        }
+      );
+    }
+  }, []);
+
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     applyFilters(value);
+  };
+
+  // Handle Google Maps place selection
+  const handlePlaceSelect = (place: PlaceResult) => {
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+    const address = place.formatted_address;
+    
+    setLocationFilter({
+      lat,
+      lng,
+      address,
+      radius: 50 // Default 50km radius
+    });
+    
+    setSearchTerm(address);
+    applyFilters(address);
+  };
+
+  // Handle location selection from map
+  const handleLocationSelect = (lat: number, lng: number, address: string) => {
+    setLocationFilter({
+      lat,
+      lng,
+      address,
+      radius: 50 // Default 50km radius
+    });
+    applyFilters();
+  };
+
+  // Calculate distance between two points
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
   const toggleFavorite = (barId: string) => {
@@ -122,7 +195,19 @@ export const SearchPage = () => {
       const matchesCategory = selectedCategories.length === 0 ||
         selectedCategories.includes(bar.category);
 
-      return matchesSearch && matchesAmenities && matchesPrice && matchesCategory;
+      // Location filter
+      let matchesLocation = true;
+      if (locationFilter && bar.coordinates) {
+        const distance = calculateDistance(
+          locationFilter.lat,
+          locationFilter.lng,
+          bar.coordinates.latitude,
+          bar.coordinates.longitude
+        );
+        matchesLocation = distance <= locationFilter.radius;
+      }
+
+      return matchesSearch && matchesAmenities && matchesPrice && matchesCategory && matchesLocation;
     });
 
     // Apply sorting
@@ -174,7 +259,24 @@ export const SearchPage = () => {
     setPriceRange([0, 200]);
     setSelectedCategories([]);
     setSortBy('rating');
+    setLocationFilter(null);
+    setSearchTerm('');
     setFilteredBars(beachBars);
+  };
+
+  // Clear location filter
+  const clearLocationFilter = () => {
+    setLocationFilter(null);
+    setSearchTerm('');
+    applyFilters();
+  };
+
+  // Update location radius
+  const updateLocationRadius = (radius: number) => {
+    if (locationFilter) {
+      setLocationFilter({ ...locationFilter, radius });
+      applyFilters();
+    }
   };
 
   const handleBarSelect = (barId: string) => {
@@ -206,27 +308,73 @@ export const SearchPage = () => {
               Search, filter, and discover amazing beach bars around the world
             </p>
             
-            <div className="max-w-2xl mx-auto">
-              <div className="flex gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search beach bars..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-10 h-12 text-lg"
-                  />
+            <div className="max-w-4xl mx-auto">
+              <div className="space-y-4">
+                {/* Google Maps Search */}
+                <GoogleMapsSearch
+                  onPlaceSelect={handlePlaceSelect}
+                  onLocationSelect={handleLocationSelect}
+                  placeholder="Search for a location or beach bar..."
+                  className="w-full"
+                />
+                
+                {/* Location Filter Display */}
+                {locationFilter && (
+                  <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{locationFilter.address}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                          Within {locationFilter.radius}km
+                        </span>
+                        <div className="flex gap-1">
+                          {[10, 25, 50, 100].map((radius) => (
+                            <Button
+                              key={radius}
+                              variant={locationFilter.radius === radius ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => updateLocationRadius(radius)}
+                              className="h-6 px-2 text-xs"
+                            >
+                              {radius}km
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearLocationFilter}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Action Buttons */}
+                <div className="flex gap-4 justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="h-12 px-6"
+                    onClick={() => setShowFilters(!showFilters)}
+                  >
+                    <Filter className="h-5 w-5 mr-2" />
+                    Filters
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="h-12 px-6"
+                    onClick={() => setShowMap(!showMap)}
+                  >
+                    <Map className="h-5 w-5 mr-2" />
+                    {showMap ? 'Hide Map' : 'Show Map'}
+                  </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="h-12 px-6"
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <Filter className="h-5 w-5 mr-2" />
-                  Filters
-                </Button>
               </div>
             </div>
           </div>
@@ -345,6 +493,29 @@ export const SearchPage = () => {
                     ))}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Map Display */}
+          {showMap && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Map className="h-5 w-5" />
+                  Beach Bars Map
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <GoogleMapsMap
+                  onLocationSelect={handleLocationSelect}
+                  initialCenter={currentLocation || { lat: 0, lng: 0 }}
+                  initialZoom={currentLocation ? 10 : 2}
+                  height="500px"
+                  showCurrentLocation={true}
+                  allowLocationSelection={true}
+                  selectedLocation={locationFilter ? { lat: locationFilter.lat, lng: locationFilter.lng } : null}
+                />
               </CardContent>
             </Card>
           )}
