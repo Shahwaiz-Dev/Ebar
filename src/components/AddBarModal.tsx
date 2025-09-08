@@ -7,13 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, Plus, MapPin, Map } from 'lucide-react';
+import { X, Plus, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateBeachBar } from '@/hooks/useBeachBars';
 import { toast } from 'sonner';
 import { BeachBar } from '@/lib/firestore';
 import { GoogleMapsSearch } from '@/components/GoogleMapsSearch';
-import { GoogleMapsMap } from '@/components/GoogleMapsMap';
 import { PlaceResult } from '@/lib/googleMaps';
 
 interface AddBarModalProps {
@@ -63,7 +62,6 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
     lng: number;
     address: string;
   } | null>(null);
-  const [showMap, setShowMap] = useState(false);
 
   // Handle Google Maps place selection
   const handlePlaceSelect = (place: PlaceResult) => {
@@ -144,7 +142,6 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
         menuItems: []
       });
       setSelectedLocation(null);
-      setShowMap(false);
     } catch (error) {
       toast.error('Failed to add beach bar. Please try again.');
     }
@@ -292,8 +289,6 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
                     onLocationSelect={handleLocationSelect}
                     placeholder="Search for your beach bar location..."
                     className="w-full"
-                    showMapButton={true}
-                    onMapClick={() => setShowMap(!showMap)}
                   />
                   
                   {/* Selected Location Display */}
@@ -324,16 +319,6 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
                     </div>
                   )}
                   
-                  {/* Map Display */}
-                  {showMap && (
-                    <GoogleMapsMap
-                      onLocationSelect={handleLocationSelect}
-                      height="400px"
-                      showCurrentLocation={true}
-                      allowLocationSelection={true}
-                      selectedLocation={selectedLocation ? { lat: selectedLocation.lat, lng: selectedLocation.lng } : null}
-                    />
-                  )}
                 </div>
               </div>
             </TabsContent>
