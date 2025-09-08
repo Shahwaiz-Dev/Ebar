@@ -110,9 +110,32 @@ export const StripeConnectDashboard = () => {
   };
 
   const updateBarWithStripeAccount = async (barId: string, stripeAccountId: string) => {
-    // This would be implemented in your API
-    // For now, we'll just show a success message
-    console.log('Updating bar with Stripe account:', barId, stripeAccountId);
+    try {
+      const response = await fetch('/api/update-bar-stripe-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          barId,
+          stripeAccountId,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success('Stripe account connected successfully!');
+      
+      // Refresh the connect account status
+      checkConnectAccount();
+    } catch (error) {
+      console.error('Error updating bar with Stripe account:', error);
+      toast.error('Failed to connect Stripe account');
+    }
   };
 
   const getStatusBadge = () => {
