@@ -91,12 +91,6 @@ export const StripeConnectDashboard = () => {
         throw new Error(data.error);
       }
 
-      // Update the first bar with the Stripe account ID
-      if (userBars.length > 0) {
-        // You'll need to implement this API endpoint
-        await updateBarWithStripeAccount(userBars[0].id!, data.accountId);
-      }
-
       // Redirect to Stripe onboarding
       window.open(data.onboardingUrl, '_blank');
       
@@ -203,13 +197,20 @@ export const StripeConnectDashboard = () => {
           </div>
           
           {!connectAccount && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
               <Button 
                 onClick={createConnectAccount}
                 disabled={isCreating}
                 className="w-full"
               >
                 {isCreating ? 'Creating Account...' : 'Set Up Stripe Connect'}
+              </Button>
+              <Button 
+                onClick={checkConnectAccount}
+                variant="outline"
+                className="w-full"
+              >
+                Check Connection Status
               </Button>
             </div>
           )}

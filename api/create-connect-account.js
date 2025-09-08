@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/connect/refresh`,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/connect/success`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/connect/success?account_id=${account.id}`,
       type: 'account_onboarding',
     });
 

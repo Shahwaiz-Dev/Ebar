@@ -1,14 +1,63 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, ArrowRight, CreditCard } from 'lucide-react';
+import { CheckCircle, ArrowRight, CreditCard, Loader2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
+import { useBeachBarsByOwner } from '@/hooks/useBeachBars';
+import { toast } from 'sonner';
 
 export const ConnectSuccessPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { currentUser } = useAuth();
+  const { data: userBars = [] } = useBeachBarsByOwner(currentUser?.uid || '');
   const [countdown, setCountdown] = useState(5);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  // Get account ID from URL parameters
+  const accountId = searchParams.get('account_id');
+
+  useEffect(() => {
+    if (accountId && userBars.length > 0) {
+      connectStripeAccount();
+    }
+  }, [accountId, userBars]);
+
+  const connectStripeAccount = async () => {
+    if (!accountId || userBars.length === 0) return;
+
+    try {
+      setIsConnecting(true);
+      
+      // Update the first bar with the Stripe account ID
+      const response = await fetch('/api/update-bar-stripe-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          barId: userBars[0].id,
+          stripeAccountId: accountId,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success('Stripe account connected successfully!');
+    } catch (error) {
+      console.error('Error connecting Stripe account:', error);
+      toast.error('Failed to connect Stripe account');
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -41,13 +90,25 @@ export const ConnectSuccessPage = () => {
             </CardHeader>
             
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Your account is now ready to receive payments!</h3>
-                <p className="text-muted-foreground">
-                  You can now accept bookings and orders from customers. 
-                  All payments will be automatically processed and transferred to your bank account.
-                </p>
-              </div>
+              {isConnecting ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Connecting your Stripe account...</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Please wait while we set up your payment processing.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Your account is now ready to receive payments!</h3>
+                  <p className="text-muted-foreground">
+                    You can now accept bookings and orders from customers. 
+                    All payments will be automatically processed and transferred to your bank account.
+                  </p>
+                </div>
+              )}
 
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-green-700">
