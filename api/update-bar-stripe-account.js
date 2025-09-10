@@ -13,6 +13,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Bar ID and Stripe Account ID are required' });
     }
 
+    console.log('Updating bar with Stripe account:', { barId, stripeAccountId });
+
     // Update the bar document with Stripe account ID
     const barRef = doc(db, 'beachBars', barId);
     await updateDoc(barRef, {

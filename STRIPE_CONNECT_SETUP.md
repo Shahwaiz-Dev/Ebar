@@ -19,7 +19,7 @@ STRIPE_SECRET_KEY=sk_test_your_secret_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
 # New Stripe Connect variables
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+VITE_APP_URL=https://your-app.vercel.app
 ```
 
 ## Stripe Connect Setup

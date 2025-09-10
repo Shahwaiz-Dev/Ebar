@@ -37,11 +37,36 @@ A modern, responsive web application for discovering and booking beach bars arou
 - **GSAP** - Smooth animations and transitions
 - **Lucide React** - Beautiful icons
 
-### Backend (Planned)
+### Backend
 - **Firebase** - Authentication, database, and storage
 - **Vercel Functions** - Serverless API endpoints
-- **Stripe** - Payment processing
+- **Stripe** - Payment processing and Connect integration
 - **Firebase Cloud Messaging** - Push notifications
+
+## 🔧 Troubleshooting
+
+### Stripe Connect Issues
+
+If Stripe Connect is not working after setup, check these common issues:
+
+1. **Environment Variables**: Ensure `VITE_APP_URL` is set in Vercel (not `NEXT_PUBLIC_APP_URL`)
+2. **API Endpoints**: Test the API endpoints using the provided test script
+3. **Browser Console**: Check for JavaScript errors in the browser console
+4. **Vercel Logs**: Check function logs in Vercel dashboard
+
+**Quick Test:**
+```bash
+node test-stripe-connect.js
+```
+
+**Detailed Guide:** See [STRIPE_CONNECT_TROUBLESHOOTING.md](./STRIPE_CONNECT_TROUBLESHOOTING.md)
+
+### Common Issues
+
+- **"Cannot read properties of undefined"**: Check Stripe publishable key configuration
+- **Connect account not connecting**: Verify `VITE_APP_URL` environment variable
+- **Payment failures**: Check Stripe account status and API keys
+- **Firebase errors**: Verify Firestore security rules and authentication
 
 ## 📱 Screenshots
 

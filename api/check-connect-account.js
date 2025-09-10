@@ -16,6 +16,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Account ID is required' });
     }
 
+    // Check if required environment variables are set
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('STRIPE_SECRET_KEY is not set');
+      return res.status(500).json({ error: 'Stripe configuration error' });
+    }
+
+    console.log('Checking Stripe Connect account:', accountId);
+
     // Retrieve the account details
     const account = await stripe.accounts.retrieve(accountId);
 
