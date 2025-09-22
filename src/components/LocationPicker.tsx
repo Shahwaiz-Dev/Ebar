@@ -339,18 +339,15 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   // If we're showing only the search box
   if (showSearchBoxOnly) {
     return (
-      <div className="space-y-2">
-        {label && <Label htmlFor="location-input">{label}</Label>}
-        <Input
-          ref={inputRef}
-          id="location-input"
-          type="text"
-          className={inputClassName}
-          placeholder={placeholder}
-          value={address}
-          onChange={handleInputChange}
-        />
-      </div>
+      <Input
+        ref={inputRef}
+        id="location-input"
+        type="text"
+        className={inputClassName}
+        placeholder={placeholder}
+        value={address}
+        onChange={handleInputChange}
+      />
     );
   }
 

@@ -10,7 +10,7 @@ service cloud.firestore {
     // Beach bars collection - public read, owner write
     match /beachBars/{barId} {
       allow read: if true; // Anyone can read beach bars
-      allow create: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
     }
     

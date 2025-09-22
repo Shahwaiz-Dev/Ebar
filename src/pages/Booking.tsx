@@ -209,7 +209,7 @@ export const BookingPage = () => {
                       className="pl-10 h-12 text-lg"
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <LocationPicker
                       initialAddress={locationSearch}
                       onAddressChange={handleLocationSearch}
