@@ -31,6 +31,7 @@ import { QuickShareButton } from '@/components/ui/share-button';
 import { useBeachBars } from '@/hooks/useBeachBars';
 import { useFavoritesByUser, useAddToFavorites, useRemoveFromFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
+import LocationPicker from '@/components/LocationPicker';
 import featuredBar1 from '@/assets/featured-bar-1.jpg';
 import featuredBar2 from '@/assets/featured-bar-2.jpg';
 import featuredBar3 from '@/assets/featured-bar-3.jpg';
@@ -68,6 +69,8 @@ export const SearchPage = () => {
   const removeFromFavoritesMutation = useRemoveFromFavorites();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [locationSearch, setLocationSearch] = useState('');
+  const [searchCoordinates, setSearchCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [filteredBars, setFilteredBars] = useState(beachBars);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
@@ -83,7 +86,16 @@ export const SearchPage = () => {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    applyFilters(value);
+    applyFilters(value, locationSearch);
+  };
+
+  const handleLocationSearch = (value: string) => {
+    setLocationSearch(value);
+    applyFilters(searchTerm, value);
+  };
+
+  const handleLocationCoordinatesChange = (coordinates: { lat: number; lng: number }) => {
+    setSearchCoordinates(coordinates);
   };
 
   const toggleFavorite = (barId: string) => {
@@ -101,12 +113,16 @@ export const SearchPage = () => {
     }
   };
 
-  const applyFilters = (searchValue = searchTerm) => {
+  const applyFilters = (searchValue = searchTerm, locationValue = locationSearch) => {
     let filtered = beachBars.filter(bar => {
       // Search filter
       const matchesSearch = searchValue === '' || 
         bar.name.toLowerCase().includes(searchValue.toLowerCase()) ||
         bar.location.toLowerCase().includes(searchValue.toLowerCase());
+
+      // Location filter - check if location search matches bar location
+      const matchesLocation = locationValue === '' || 
+        bar.location.toLowerCase().includes(locationValue.toLowerCase());
 
       // Amenities filter
       const matchesAmenities = selectedAmenities.length === 0 ||
@@ -122,7 +138,7 @@ export const SearchPage = () => {
       const matchesCategory = selectedCategories.length === 0 ||
         selectedCategories.includes(bar.category);
 
-      return matchesSearch && matchesAmenities && matchesPrice && matchesCategory;
+      return matchesSearch && matchesLocation && matchesAmenities && matchesPrice && matchesCategory;
     });
 
     // Apply sorting
@@ -206,9 +222,9 @@ export const SearchPage = () => {
               Search, filter, and discover amazing beach bars around the world
             </p>
             
-            <div className="max-w-2xl mx-auto">
-              <div className="flex gap-4">
-                <div className="flex-1 relative">
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     type="text"
@@ -218,6 +234,18 @@ export const SearchPage = () => {
                     className="pl-10 h-12 text-lg"
                   />
                 </div>
+                <div>
+                  <LocationPicker
+                    initialAddress={locationSearch}
+                    onAddressChange={handleLocationSearch}
+                    onCoordinatesChange={handleLocationCoordinatesChange}
+                    showSearchBoxOnly={true}
+                    placeholder="Search by location..."
+                    inputClassName="h-12 text-lg"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-center">
                 <Button 
                   variant="outline" 
                   size="lg" 

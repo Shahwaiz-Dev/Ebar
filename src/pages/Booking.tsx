@@ -13,6 +13,7 @@ import { useCreateBooking } from '@/hooks/useBookings';
 import { useBeachBars } from '@/hooks/useBeachBars';
 import { createSampleBeachBars } from '@/lib/firestore';
 import { toast } from 'sonner';
+import LocationPicker from '@/components/LocationPicker';
 import featuredBar1 from '@/assets/featured-bar-1.jpg';
 import featuredBar2 from '@/assets/featured-bar-2.jpg';
 import featuredBar3 from '@/assets/featured-bar-3.jpg';
@@ -31,6 +32,7 @@ export const BookingPage = () => {
   const createBookingMutation = useCreateBooking();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [locationSearch, setLocationSearch] = useState('');
   const [selectedBar, setSelectedBar] = useState<any>(null);
   const [selectedItems, setSelectedItems] = useState<BookingItem[]>([]);
   const [selectedDate, setSelectedDate] = useState('');
@@ -39,14 +41,24 @@ export const BookingPage = () => {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
 
-  // Filter bars based on search term
-  const filteredBars = beachBars.filter(bar =>
-    bar.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bar.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter bars based on search term and location
+  const filteredBars = beachBars.filter(bar => {
+    const matchesSearch = searchTerm === '' || 
+      bar.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bar.location.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesLocation = locationSearch === '' || 
+      bar.location.toLowerCase().includes(locationSearch.toLowerCase());
+    
+    return matchesSearch && matchesLocation;
+  });
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+  };
+
+  const handleLocationSearch = (value: string) => {
+    setLocationSearch(value);
   };
 
   const handleBarSelect = (bar: any) => {
@@ -185,9 +197,9 @@ export const BookingPage = () => {
           {!selectedBar ? (
             <>
               {/* Search Section */}
-              <div className="max-w-2xl mx-auto mb-12">
-                <div className="flex gap-4">
-                  <div className="flex-1 relative">
+              <div className="max-w-4xl mx-auto mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       type="text"
@@ -197,9 +209,15 @@ export const BookingPage = () => {
                       className="pl-10 h-12 text-lg"
                     />
                   </div>
-                  <Button variant="sunset" size="lg" className="h-12 px-8">
-                    Search
-                  </Button>
+                  <div>
+                    <LocationPicker
+                      initialAddress={locationSearch}
+                      onAddressChange={handleLocationSearch}
+                      showSearchBoxOnly={true}
+                      placeholder="Search by location..."
+                      inputClassName="h-12 text-lg"
+                    />
+                  </div>
                 </div>
               </div>
 

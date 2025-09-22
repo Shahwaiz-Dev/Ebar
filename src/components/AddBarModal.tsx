@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCreateBeachBar } from '@/hooks/useBeachBars';
 import { toast } from 'sonner';
 import { BeachBar } from '@/lib/firestore';
+import LocationPicker from './LocationPicker';
 
 interface AddBarModalProps {
   isOpen: boolean;
@@ -151,13 +152,16 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
               </div>
               
               <div>
-                <Label htmlFor="location">Location *</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  placeholder="City, Country"
-                  required
+                <LocationPicker
+                  initialAddress={formData.location}
+                  onAddressChange={(address) => setFormData(prev => ({ ...prev, location: address }))}
+                  onCoordinatesChange={(coordinates) => setFormData(prev => ({ 
+                    ...prev, 
+                    coordinates: { latitude: coordinates.lat, longitude: coordinates.lng }
+                  }))}
+                  showSearchBoxOnly={true}
+                  label="Location *"
+                  placeholder="Search for location..."
                 />
               </div>
             </div>
@@ -241,40 +245,6 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
             </div>
           </div>
 
-          {/* Coordinates */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Location Coordinates</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="latitude">Latitude</Label>
-                <Input
-                  id="latitude"
-                  type="number"
-                  step="any"
-                  value={formData.coordinates.latitude}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    coordinates: { ...prev.coordinates, latitude: parseFloat(e.target.value) || 0 }
-                  }))}
-                  placeholder="0.000000"
-                />
-              </div>
-              <div>
-                <Label htmlFor="longitude">Longitude</Label>
-                <Input
-                  id="longitude"
-                  type="number"
-                  step="any"
-                  value={formData.coordinates.longitude}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    coordinates: { ...prev.coordinates, longitude: parseFloat(e.target.value) || 0 }
-                  }))}
-                  placeholder="0.000000"
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4">
