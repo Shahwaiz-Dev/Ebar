@@ -170,21 +170,19 @@ export const Header = () => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {currentUser?.type === 'owner' && (
-                  <DropdownMenuItem onClick={() => {
-                    navigate('/dashboard');
-                    setTimeout(() => {
-                      window.scrollTo({
-                        top: 0,
-                        left: 0,
-                        behavior: 'smooth'
-                      });
-                    }, 100);
-                  }}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem onClick={() => {
+                  navigate('/dashboard');
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 0,
+                      left: 0,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </DropdownMenuItem>
                 {currentUser?.type === 'admin' && (
                   <DropdownMenuItem onClick={() => {
                     navigate('/admin');
@@ -200,36 +198,32 @@ export const Header = () => {
                     <span>Admin Panel</span>
                   </DropdownMenuItem>
                 )}
-                {currentUser?.type !== 'owner' && (
-                  <>
-                    <DropdownMenuItem onClick={() => {
-                      navigate('/favorites');
-                      setTimeout(() => {
-                        window.scrollTo({
-                          top: 0,
-                          left: 0,
-                          behavior: 'smooth'
-                        });
-                      }, 100);
-                    }}>
-                      <Heart className="mr-2 h-4 w-4" />
-                      <span>Favorites</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      navigate('/booking-history');
-                      setTimeout(() => {
-                        window.scrollTo({
-                          top: 0,
-                          left: 0,
-                          behavior: 'smooth'
-                        });
-                      }, 100);
-                    }}>
-                      <Clock className="mr-2 h-4 w-4" />
-                      <span>Booking History</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
+                <DropdownMenuItem onClick={() => {
+                  navigate('/favorites');
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 0,
+                      left: 0,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }}>
+                  <Heart className="mr-2 h-4 w-4" />
+                  <span>Favorites</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  navigate('/booking-history');
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 0,
+                      left: 0,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }}>
+                  <Clock className="mr-2 h-4 w-4" />
+                  <span>Booking History</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign Out</span>
@@ -302,21 +296,19 @@ export const Header = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {currentUser?.type === 'owner' && (
-                <DropdownMenuItem onClick={() => {
-                  navigate('/dashboard');
-                  setTimeout(() => {
-                    window.scrollTo({
-                      top: 0,
-                      left: 0,
-                      behavior: 'smooth'
-                    });
-                  }, 100);
-                }}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => {
+                navigate('/dashboard');
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 0,
+                    left: 0,
+                    behavior: 'smooth'
+                  });
+                }, 100);
+              }}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
               {currentUser?.type === 'admin' && (
                 <DropdownMenuItem onClick={() => {
                   navigate('/admin');
@@ -332,36 +324,32 @@ export const Header = () => {
                   <span>Admin Panel</span>
                 </DropdownMenuItem>
               )}
-              {currentUser?.type !== 'owner' && (
-                <>
-                  <DropdownMenuItem onClick={() => {
-                    navigate('/favorites');
-                    setTimeout(() => {
-                      window.scrollTo({
-                        top: 0,
-                        left: 0,
-                        behavior: 'smooth'
-                      });
-                    }, 100);
-                  }}>
-                    <Heart className="mr-2 h-4 w-4" />
-                    <span>Favorites</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    navigate('/booking-history');
-                    setTimeout(() => {
-                      window.scrollTo({
-                        top: 0,
-                        left: 0,
-                        behavior: 'smooth'
-                      });
-                    }, 100);
-                  }}>
-                    <Clock className="mr-2 h-4 w-4" />
-                    <span>Booking History</span>
-                  </DropdownMenuItem>
-                </>
-              )}
+              <DropdownMenuItem onClick={() => {
+                navigate('/favorites');
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 0,
+                    left: 0,
+                    behavior: 'smooth'
+                  });
+                }, 100);
+              }}>
+                <Heart className="mr-2 h-4 w-4" />
+                <span>Favorites</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                navigate('/booking-history');
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 0,
+                    left: 0,
+                    behavior: 'smooth'
+                  });
+                }, 100);
+              }}>
+                <Clock className="mr-2 h-4 w-4" />
+                <span>Booking History</span>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign Out</span>
