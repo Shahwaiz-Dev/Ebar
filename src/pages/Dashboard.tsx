@@ -62,14 +62,9 @@ export const DashboardPage = () => {
   const { data: stats, isLoading: statsLoading } = useDashboardStats(currentUser?.uid || '');
 
   useEffect(() => {
-    // Check if user is authenticated and is a bar owner
+    // Check if user is authenticated
     if (!currentUser) {
       navigate('/auth');
-      return;
-    }
-
-    if (currentUser.type !== 'owner') {
-      navigate('/');
       return;
     }
   }, [navigate, currentUser]);
