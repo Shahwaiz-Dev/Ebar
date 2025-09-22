@@ -13,7 +13,8 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.ownerId ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin' ||
+        request.auth.email in ['admin@yourdomain.com', 'admin2@yourdomain.com'] // Add your admin emails here
       );
       allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
     }

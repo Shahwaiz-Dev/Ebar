@@ -8,15 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
-  User,
-  Building2,
-  Shield,
   Mail,
   Lock,
   Eye,
   EyeOff,
-  CheckCircle,
-  X,
   AlertTriangle
 } from 'lucide-react';
 import { Header } from '@/components/Header';
@@ -45,7 +40,6 @@ export const AuthPage = () => {
   const navigate = useNavigate();
   const { signUp, signIn, updateUserProfile, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
-  const [userType, setUserType] = useState<'user' | 'owner'>('user');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +71,7 @@ export const AuthPage = () => {
           formData.password,
           formData.firstName,
           formData.lastName,
-          userType
+          'user'
         );
         
         // If there's additional profile data, update it
@@ -105,12 +99,8 @@ export const AuthPage = () => {
         });
       }
       
-      // Redirect based on user type
-      if (userType === 'owner') {
-        navigate('/dashboard');
-      } else {
-        navigate('/');
-      }
+      // Redirect to home page
+      navigate('/');
     } catch (error: any) {
       console.error('Authentication error:', error);
       toast({
@@ -229,35 +219,6 @@ export const AuthPage = () => {
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-md mx-auto">
-            {/* User Type Switch */}
-            <div className="mb-8">
-              <div className="bg-white rounded-xl p-1 shadow-sm border">
-                <div className="flex">
-                  <button
-                    onClick={() => setUserType('user')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
-                      userType === 'user'
-                        ? 'bg-primary text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <User className="h-4 w-4" />
-                    Beach Goer
-                  </button>
-                  <button
-                    onClick={() => setUserType('owner')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
-                      userType === 'owner'
-                        ? 'bg-primary text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <Building2 className="h-4 w-4" />
-                    Bar Owner
-                  </button>
-                </div>
-              </div>
-            </div>
 
             {/* Auth Card */}
             <Card className="shadow-lg">
@@ -267,8 +228,8 @@ export const AuthPage = () => {
                 </CardTitle>
                 <p className="text-muted-foreground">
                   {activeTab === 'login' 
-                    ? `Sign in to your ${userType === 'user' ? 'beach' : 'business'} account`
-                    : `Join BeachVibe as a ${userType === 'user' ? 'beach goer' : 'bar owner'}`
+                    ? 'Sign in to your account'
+                    : 'Join BeachVibe and discover amazing beach bars'
                   }
                 </p>
               </CardHeader>
