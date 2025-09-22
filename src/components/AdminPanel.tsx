@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle, XCircle, Eye, Clock, Shield } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Shield, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   getUnverifiedBars, 
   getBeachBars, 
@@ -20,6 +21,7 @@ import {
 export const AdminPanel = () => {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selectedBar, setSelectedBar] = useState<BeachBar | null>(null);
 
   // Check if user is admin
@@ -97,10 +99,22 @@ export const AdminPanel = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
-        <p className="text-muted-foreground">
-          Manage bar verifications and oversee platform content
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
+            <p className="text-muted-foreground">
+              Manage bar verifications and oversee platform content
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2"
+          >
+            <Home className="h-4 w-4" />
+            Back to Website
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="pending" className="space-y-6">
