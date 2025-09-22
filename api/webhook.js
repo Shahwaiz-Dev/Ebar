@@ -94,12 +94,13 @@ export default async function handler(req, res) {
       
       break;
       
-    case 'transfer.failed':
-      const failedTransfer = event.data.object;
-      console.log('Transfer failed:', failedTransfer.id);
+    case 'transfer.reversed':
+      const reversedTransfer = event.data.object;
+      console.log('Transfer reversed:', reversedTransfer.id);
       
-      // Handle failed transfer
-      // - Notify bar owner about failed payout
+      // Handle reversed transfer
+      // - Update bar owner's earnings (subtract reversed amount)
+      // - Notify bar owner about reversal
       // - Update payment status
       
       break;

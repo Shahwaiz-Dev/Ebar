@@ -52,7 +52,7 @@ FRONTEND_URL=http://localhost:5173
    - `payment_intent.payment_failed`
    - `account.updated`
    - `transfer.created`
-   - `transfer.failed`
+   - `transfer.reversed`
    - `charge.succeeded`
    - `charge.failed`
 
