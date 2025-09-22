@@ -257,11 +257,12 @@ export const ConnectOnboarding = ({
                   Complete your account setup to start receiving payments.
                 </p>
                 <Button 
-                  onClick={() => window.open(`/api/create-connect-account`, '_blank')}
+                  onClick={createConnectAccount}
                   variant="outline"
                   className="w-full"
+                  disabled={isCreating}
                 >
-                  Continue Setup
+                  {isCreating ? 'Creating Account...' : 'Continue Setup'}
                 </Button>
               </div>
             )}
