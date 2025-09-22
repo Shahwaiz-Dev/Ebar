@@ -10,6 +10,9 @@ import { CheckCircle, CreditCard, Mail, ArrowLeft, MapPin } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { StripePaymentForm } from '@/components/StripePaymentForm';
+import { ConnectPaymentForm } from '@/components/ConnectPaymentForm';
+import { getBeachBarById } from '@/lib/firestore';
+import { BeachBar } from '@/lib/firestore';
 import { toast } from 'sonner';
 
 interface OrderData {
@@ -35,17 +38,36 @@ interface OrderData {
 export const PaymentPage = () => {
   const navigate = useNavigate();
   const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [barData, setBarData] = useState<BeachBar | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoadingBar, setIsLoadingBar] = useState(false);
 
   useEffect(() => {
     const storedOrder = localStorage.getItem('currentOrder');
     if (storedOrder) {
-      setOrderData(JSON.parse(storedOrder));
+      const order = JSON.parse(storedOrder);
+      setOrderData(order);
+      
+      // Fetch bar data to get Connect account information
+      fetchBarData(order.barId);
     } else {
       navigate('/search');
     }
   }, [navigate]);
+
+  const fetchBarData = async (barId: number) => {
+    setIsLoadingBar(true);
+    try {
+      const bar = await getBeachBarById(barId.toString());
+      setBarData(bar);
+    } catch (error) {
+      console.error('Error fetching bar data:', error);
+      toast.error('Failed to load bar information');
+    } finally {
+      setIsLoadingBar(false);
+    }
+  };
 
   const handlePaymentSuccess = (paymentId: string) => {
     console.log('Payment successful with ID:', paymentId);
@@ -228,18 +250,55 @@ export const PaymentPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {orderData && (
-                    <StripePaymentForm
-                      amount={orderData.total}
-                      onSuccess={handlePaymentSuccess}
-                      onError={handlePaymentError}
-                      metadata={{
-                        orderId: orderData.barId.toString(),
-                        barName: orderData.barName,
-                        orderType: orderData.type || 'order'
-                      }}
-                      buttonText="Pay"
-                    />
+                  {isLoadingBar ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">Loading payment information...</p>
+                    </div>
+                  ) : orderData && barData ? (
+                    // Use Connect payment form if bar has Connect account set up
+                    barData.connectAccountId && barData.connectAccountStatus === 'active' ? (
+                      <ConnectPaymentForm
+                        amount={orderData.total}
+                        barId={orderData.barId.toString()}
+                        ownerId={barData.ownerId}
+                        connectAccountId={barData.connectAccountId}
+                        barName={orderData.barName}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        metadata={{
+                          orderId: orderData.barId.toString(),
+                          barName: orderData.barName,
+                          orderType: orderData.type || 'order'
+                        }}
+                        buttonText="Pay"
+                      />
+                    ) : (
+                      // Fallback to regular Stripe payment form
+                      <div className="space-y-4">
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-sm text-yellow-800">
+                            <strong>Note:</strong> This bar hasn't set up Connect payments yet. 
+                            Payment will be processed through the platform.
+                          </p>
+                        </div>
+                        <StripePaymentForm
+                          amount={orderData.total}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                          metadata={{
+                            orderId: orderData.barId.toString(),
+                            barName: orderData.barName,
+                            orderType: orderData.type || 'order'
+                          }}
+                          buttonText="Pay"
+                        />
+                      </div>
+                    )
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Unable to load payment information</p>
+                    </div>
                   )}
                 </CardContent>
               </Card>

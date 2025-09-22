@@ -136,6 +136,21 @@ export const DashboardPage = () => {
     }
   };
 
+  const handleConnectAccountCreated = async (accountId: string) => {
+    if (!selectedBar) return;
+    
+    try {
+      await updateBeachBarConnectAccount(selectedBar.id!, accountId, 'pending');
+      toast.success('Connect account created! Complete the onboarding process.');
+      
+      // Refresh the bars data to show updated Connect status
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating bar with Connect account:', error);
+      toast.error('Failed to save Connect account information');
+    }
+  };
+
   const handleToggleAvailability = (spotId: string, type: 'sunbed' | 'umbrella') => {
     if (!selectedBar) return;
     
