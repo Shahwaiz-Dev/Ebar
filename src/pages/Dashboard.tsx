@@ -321,12 +321,13 @@ export const DashboardPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="bookings">Bookings</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                   <TabsTrigger value="qr-codes">QR Codes</TabsTrigger>
                   <TabsTrigger value="menu">Menu</TabsTrigger>
+                  <TabsTrigger value="payments">Payments</TabsTrigger>
                   <TabsTrigger value="settings">Settings</TabsTrigger>
                 </TabsList>
 
@@ -563,6 +564,32 @@ export const DashboardPage = () => {
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground">Please select a bar to view menu items</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Payments Tab */}
+                <TabsContent value="payments" className="space-y-6">
+                  {selectedBar ? (
+                    <div className="space-y-6">
+                      {/* Connect Onboarding */}
+                      <ConnectOnboarding
+                        ownerId={currentUser.uid}
+                        barName={selectedBar.name}
+                        onAccountCreated={handleConnectAccountCreated}
+                      />
+                      
+                      {/* Connect Dashboard - Show if account is set up */}
+                      {selectedBar.connectAccountId && (
+                        <ConnectDashboard
+                          accountId={selectedBar.connectAccountId}
+                          barName={selectedBar.name}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Please select a bar to manage payments</p>
                     </div>
                   )}
                 </TabsContent>
