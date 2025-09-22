@@ -39,6 +39,9 @@ import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { BeachBar } from '@/lib/firestore';
 import { createSampleBeachBars } from '@/lib/firestore';
 import { OrderManagement } from '@/components/OrderManagement';
+import { ConnectOnboarding } from '@/components/ConnectOnboarding';
+import { ConnectDashboard } from '@/components/ConnectDashboard';
+import { updateBeachBarConnectAccount } from '@/lib/firestore';
 
 
 export const DashboardPage = () => {
