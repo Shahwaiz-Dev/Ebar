@@ -18,7 +18,7 @@ export interface AuthUser {
   email: string | null;
   firstName: string;
   lastName: string;
-  type: 'user' | 'owner';
+  type: 'user' | 'owner' | 'admin';
   avatar?: string;
   phone?: string;
   businessName?: string;
@@ -28,7 +28,7 @@ export interface AuthUser {
 interface AuthContextType {
   currentUser: AuthUser | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName: string, lastName: string, type: 'user' | 'owner') => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, type: 'user' | 'owner' | 'admin') => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     password: string, 
     firstName: string, 
     lastName: string, 
-    type: 'user' | 'owner'
+    type: 'user' | 'owner' | 'admin'
   ) => {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);

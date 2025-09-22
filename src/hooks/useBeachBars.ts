@@ -20,11 +20,11 @@ export const beachBarKeys = {
   owner: (ownerId: string) => [...beachBarKeys.all, 'owner', ownerId] as const,
 };
 
-// Get all beach bars
-export const useBeachBars = () => {
+// Get all beach bars (verified only by default)
+export const useBeachBars = (includeUnverified: boolean = false) => {
   return useQuery({
     queryKey: beachBarKeys.lists(),
-    queryFn: getBeachBars,
+    queryFn: () => getBeachBars(includeUnverified),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

@@ -57,6 +57,10 @@ export interface BeachBar {
   connectAccountId?: string;
   connectAccountStatus?: 'pending' | 'active' | 'restricted';
   paymentSetupComplete?: boolean;
+  // Admin verification fields
+  isVerified: boolean;
+  verifiedAt?: Timestamp;
+  verifiedBy?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -135,27 +139,33 @@ export interface Favorite {
 // Beach Bars Collection
 export const beachBarsCollection = collection(db, 'beachBars');
 
-export const createBeachBar = async (barData: Omit<BeachBar, 'id' | 'createdAt' | 'updatedAt'>) => {
+export const createBeachBar = async (barData: Omit<BeachBar, 'id' | 'createdAt' | 'updatedAt' | 'isVerified' | 'verifiedAt' | 'verifiedBy'>) => {
   try {
     const docRef = await addDoc(beachBarsCollection, {
       ...barData,
+      isVerified: false, // New bars are not verified by default
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    return { id: docRef.id, ...barData };
+    return { id: docRef.id, ...barData, isVerified: false };
   } catch (error) {
     console.error('Error creating beach bar:', error);
     throw error;
   }
 };
 
-export const getBeachBars = async () => {
+export const getBeachBars = async (includeUnverified: boolean = false) => {
   try {
     const querySnapshot = await getDocs(beachBarsCollection);
-    const bars = querySnapshot.docs.map(doc => ({
+    let bars = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as BeachBar[];
+
+    // Filter out unverified bars for public display unless specifically requested
+    if (!includeUnverified) {
+      bars = bars.filter(bar => bar.isVerified);
+    }
 
     // Get reviews for all bars to calculate real ratings
     const barIds = bars.map(bar => bar.id!).filter(Boolean);
@@ -765,5 +775,51 @@ export const createSampleReviews = async () => {
     } catch (error) {
       console.error(`Error creating review for user ${reviewData.userId}:`, error);
     }
+  }
+};
+
+// Admin functions for bar verification
+export const getUnverifiedBars = async () => {
+  try {
+    const q = query(beachBarsCollection, where('isVerified', '==', false));
+    const querySnapshot = await getDocs(q);
+    const bars = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as BeachBar[];
+    return bars;
+  } catch (error) {
+    console.error('Error getting unverified bars:', error);
+    throw error;
+  }
+};
+
+export const verifyBar = async (barId: string, adminId: string) => {
+  try {
+    const barRef = doc(db, 'beachBars', barId);
+    await updateDoc(barRef, {
+      isVerified: true,
+      verifiedAt: serverTimestamp(),
+      verifiedBy: adminId,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error verifying bar:', error);
+    throw error;
+  }
+};
+
+export const unverifyBar = async (barId: string) => {
+  try {
+    const barRef = doc(db, 'beachBars', barId);
+    await updateDoc(barRef, {
+      isVerified: false,
+      verifiedAt: null,
+      verifiedBy: null,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error unverifying bar:', error);
+    throw error;
   }
 }; 

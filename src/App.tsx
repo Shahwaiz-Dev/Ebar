@@ -21,6 +21,7 @@ import BookingHistoryPage from "./pages/BookingHistory";
 import BarDetailsPage from "./pages/BarDetails";
 import ContactPage from "./pages/Contact";
 import ConnectSuccessPage from "./pages/ConnectSuccess";
+import { AdminPage } from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const AppRoutes = () => {
       <Route path="/booking-history" element={<BookingHistoryPage />} />
       <Route path="/bar-details/:barId" element={<BarDetailsPage />} />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/admin" element={<AdminPage />} />
       <Route path="/dashboard/connect/success" element={<ConnectSuccessPage />} />
       <Route path="/dashboard/connect/refresh" element={<ConnectSuccessPage />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

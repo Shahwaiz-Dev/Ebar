@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Waves, User, Building2, LogOut, Settings, Heart, Clock } from 'lucide-react';
+import { Menu, X, Waves, User, Building2, LogOut, Settings, Heart, Clock, Shield } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -185,6 +185,21 @@ export const Header = () => {
                     <span>Dashboard</span>
                   </DropdownMenuItem>
                 )}
+                {currentUser?.type === 'admin' && (
+                  <DropdownMenuItem onClick={() => {
+                    navigate('/admin');
+                    setTimeout(() => {
+                      window.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: 'smooth'
+                      });
+                    }, 100);
+                  }}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Admin Panel</span>
+                  </DropdownMenuItem>
+                )}
                 {currentUser?.type !== 'owner' && (
                   <>
                     <DropdownMenuItem onClick={() => {
@@ -300,6 +315,21 @@ export const Header = () => {
                 }}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Dashboard</span>
+                </DropdownMenuItem>
+              )}
+              {currentUser?.type === 'admin' && (
+                <DropdownMenuItem onClick={() => {
+                  navigate('/admin');
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 0,
+                      left: 0,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>Admin Panel</span>
                 </DropdownMenuItem>
               )}
               {currentUser?.type !== 'owner' && (

@@ -16,7 +16,7 @@ import LocationPicker from './LocationPicker';
 interface AddBarModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (bar: Omit<BeachBar, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onAdd: (bar: Omit<BeachBar, 'id' | 'createdAt' | 'updatedAt' | 'isVerified' | 'verifiedAt' | 'verifiedBy'>) => void;
 }
 
 const availableAmenities = [

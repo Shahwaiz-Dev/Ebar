@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import {
   User,
   Building2,
+  Shield,
   Mail,
   Lock,
   Eye,
@@ -46,7 +47,7 @@ export const AuthPage = () => {
   const navigate = useNavigate();
   const { signUp, signIn, signInWithGoogle, updateUserProfile, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
-  const [userType, setUserType] = useState<'user' | 'owner'>('user');
+  const [userType, setUserType] = useState<'user' | 'owner' | 'admin'>('user');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -115,6 +116,8 @@ export const AuthPage = () => {
       // Redirect based on user type
       if (userType === 'owner') {
         navigate('/dashboard');
+      } else if (userType === 'admin') {
+        navigate('/admin');
       } else {
         navigate('/');
       }
@@ -289,6 +292,17 @@ export const AuthPage = () => {
                     <Building2 className="h-4 w-4" />
                     Bar Owner
                   </button>
+                  <button
+                    onClick={() => setUserType('admin')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
+                      userType === 'admin'
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </button>
                 </div>
               </div>
             </div>
@@ -301,8 +315,8 @@ export const AuthPage = () => {
                 </CardTitle>
                 <p className="text-muted-foreground">
                   {activeTab === 'login' 
-                    ? `Sign in to your ${userType === 'user' ? 'beach' : 'business'} account`
-                    : `Join BeachVibe as a ${userType === 'user' ? 'beach goer' : 'bar owner'}`
+                    ? `Sign in to your ${userType === 'user' ? 'beach' : userType === 'owner' ? 'business' : 'admin'} account`
+                    : `Join BeachVibe as a ${userType === 'user' ? 'beach goer' : userType === 'owner' ? 'bar owner' : 'admin'}`
                   }
                 </p>
               </CardHeader>
