@@ -12,11 +12,25 @@ export default async function handler(req, res) {
   try {
     const { email, businessName, ownerId } = req.body;
 
+    console.log('Creating Connect account with:', { email, businessName, ownerId });
+
     if (!email || !businessName || !ownerId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Check if Stripe secret key is configured
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('STRIPE_SECRET_KEY is not configured');
+      return res.status(500).json({ error: 'Stripe configuration missing' });
+    }
+
+    if (!process.env.FRONTEND_URL) {
+      console.error('FRONTEND_URL is not configured');
+      return res.status(500).json({ error: 'Frontend URL configuration missing' });
+    }
+
     // Create Express account
+    console.log('Creating Stripe Express account...');
     const account = await stripe.accounts.create({
       type: 'express',
       email: email,
@@ -30,13 +44,18 @@ export default async function handler(req, res) {
       },
     });
 
+    console.log('Stripe account created:', account.id);
+
     // Create account link for onboarding
+    console.log('Creating account link...');
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: `${process.env.FRONTEND_URL}/dashboard/connect/refresh`,
       return_url: `${process.env.FRONTEND_URL}/dashboard/connect/success`,
       type: 'account_onboarding',
     });
+
+    console.log('Account link created:', accountLink.url);
 
     res.status(200).json({
       accountId: account.id,

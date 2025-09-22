@@ -32,12 +32,14 @@ interface ConnectAccount {
 interface ConnectOnboardingProps {
   ownerId: string;
   barName: string;
+  ownerEmail: string;
   onAccountCreated?: (accountId: string) => void;
 }
 
 export const ConnectOnboarding = ({ 
   ownerId, 
   barName, 
+  ownerEmail,
   onAccountCreated 
 }: ConnectOnboardingProps) => {
   const [account, setAccount] = useState<ConnectAccount | null>(null);
@@ -47,27 +49,48 @@ export const ConnectOnboarding = ({
   const createConnectAccount = async () => {
     setIsCreating(true);
     try {
+      console.log('Creating Connect account with:', {
+        email: ownerEmail,
+        businessName: barName,
+        ownerId: ownerId,
+      });
+
       const response = await fetch('/api/create-connect-account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: 'owner@example.com', // You'll get this from user context
+          email: ownerEmail,
           businessName: barName,
           ownerId: ownerId,
         }),
       });
 
+      console.log('API response status:', response.status);
       const data = await response.json();
+      console.log('API response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
 
       if (data.error) {
         toast.error(data.error);
         return;
       }
 
+      if (!data.onboardingUrl) {
+        throw new Error('No onboarding URL received from server');
+      }
+
       // Open onboarding in new window
-      window.open(data.onboardingUrl, '_blank');
+      console.log('Opening onboarding URL:', data.onboardingUrl);
+      const newWindow = window.open(data.onboardingUrl, '_blank');
+      
+      if (!newWindow) {
+        throw new Error('Failed to open new window. Please check your popup blocker settings.');
+      }
       
       // Store account ID for future reference
       localStorage.setItem('connectAccountId', data.accountId);
@@ -79,7 +102,7 @@ export const ConnectOnboarding = ({
       toast.success('Onboarding started! Complete the setup in the new window.');
     } catch (error) {
       console.error('Error creating Connect account:', error);
-      toast.error('Failed to create Connect account');
+      toast.error(`Failed to create Connect account: ${error.message}`);
     } finally {
       setIsCreating(false);
     }
