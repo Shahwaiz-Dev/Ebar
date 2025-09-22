@@ -53,6 +53,10 @@ export interface BeachBar {
     category: 'drinks' | 'food';
     available: boolean;
   }>;
+  // Stripe Connect fields
+  connectAccountId?: string;
+  connectAccountStatus?: 'pending' | 'active' | 'restricted';
+  paymentSetupComplete?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -220,6 +224,25 @@ export const updateBeachBar = async (id: string, updates: Partial<BeachBar>) => 
     });
   } catch (error) {
     console.error('Error updating beach bar:', error);
+    throw error;
+  }
+};
+
+export const updateBeachBarConnectAccount = async (
+  id: string, 
+  connectAccountId: string, 
+  connectAccountStatus: 'pending' | 'active' | 'restricted' = 'pending'
+) => {
+  try {
+    const docRef = doc(db, 'beachBars', id);
+    await updateDoc(docRef, {
+      connectAccountId,
+      connectAccountStatus,
+      paymentSetupComplete: connectAccountStatus === 'active',
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error updating beach bar Connect account:', error);
     throw error;
   }
 };
