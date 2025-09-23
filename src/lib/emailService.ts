@@ -6,8 +6,8 @@ const createTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail', // You can change this to other services
     auth: {
-      user: process.env.EMAIL_USER || '',
-      pass: process.env.EMAIL_PASS || '', // Use App Password for Gmail
+      user: 'shahwaizn933@gmail.com',
+      pass: 'zarkwdkhplqmiubf', // App Password for Gmail
     },
   });
 };
@@ -199,8 +199,8 @@ class EmailService {
   private fromName: string;
 
   constructor() {
-    this.fromEmail = process.env.FROM_EMAIL || 'noreply@beachvibe.com';
-    this.fromName = process.env.FROM_NAME || 'BeachVibe';
+    this.fromEmail = 'shahwaizn933@gmail.com';
+    this.fromName = 'BeachVibe';
   }
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
