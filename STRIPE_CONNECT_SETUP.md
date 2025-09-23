@@ -56,7 +56,7 @@ FRONTEND_URL=http://localhost:5173
    - `charge.succeeded`
    - `charge.failed`
 
-4. Copy the webhook signing secret to your environment variables
+4. the webhook signing secret to your environment variables
 
 ## 💻 Implementation Guide
 
