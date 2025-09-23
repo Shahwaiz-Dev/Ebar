@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { AuthUser } from '@/contexts/AuthContext';
+import { AuthUser, useAuth } from '@/contexts/AuthContext';
+import { Trash2 } from 'lucide-react';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ interface UserProfileModalProps {
 }
 
 export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfileModalProps) => {
+  const { deleteAccount } = useAuth();
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -39,6 +42,17 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
 
     onUpdate(updatedUser);
     onClose();
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount();
+      toast.success('Account deleted successfully');
+      onClose();
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Failed to delete account. Please try again.');
+    }
   };
 
   return (
@@ -117,13 +131,39 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
             </>
           )}
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              Save Changes
-            </Button>
+          <div className="flex justify-between items-center pt-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="destructive" size="sm">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Account</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete your account? This action cannot be undone.
+                    All your data, bookings, and preferences will be permanently removed.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete Account
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Save Changes
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

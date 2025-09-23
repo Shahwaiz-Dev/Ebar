@@ -8,9 +8,10 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  deleteUser
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
 export interface AuthUser {
@@ -34,6 +35,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUserProfile: (data: Partial<AuthUser>) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -190,6 +192,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const deleteAccount = async () => {
+    if (!currentUser || !auth.currentUser) throw new Error('No user logged in');
+
+    try {
+      // Delete user document from Firestore
+      await deleteDoc(doc(db, 'users', currentUser.uid));
+      
+      // Delete user from Firebase Auth
+      await deleteUser(auth.currentUser);
+      
+      setCurrentUser(null);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     currentUser,
     loading,
@@ -199,6 +218,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     logout,
     updateUserProfile,
     resetPassword,
+    deleteAccount,
   };
 
   return (

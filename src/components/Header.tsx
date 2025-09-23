@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Waves, User, Building2, LogOut, Settings, Heart, Clock, Shield } from 'lucide-react';
+import { Menu, X, Waves, User, Building2, LogOut, Settings, Heart, Clock, Shield, Edit3, Trash2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserProfileModal } from '@/components/UserProfileModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +26,8 @@ import {
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { currentUser, logout } = useAuth();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const { currentUser, logout, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -78,6 +80,14 @@ export const Header = () => {
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  };
+
+  const handleProfileUpdate = async (updatedUser: any) => {
+    try {
+      await updateUserProfile(updatedUser);
+    } catch (error) {
+      console.error('Profile update error:', error);
     }
   };
 
@@ -153,13 +163,12 @@ export const Header = () => {
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="lg" className="flex items-center gap-2">
+                <Button variant="ghost" size="lg" className="rounded-full w-12 h-12 p-0">
                   {currentUser?.type === 'owner' ? (
-                    <Building2 className="h-4 w-4" />
+                    <Building2 className="h-5 w-5" />
                   ) : (
-                    <User className="h-4 w-4" />
+                    <User className="h-5 w-5" />
                   )}
-                  {currentUser?.firstName}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -170,6 +179,15 @@ export const Header = () => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                
+                {/* Profile Section */}
+                <DropdownMenuItem onClick={() => setIsProfileModalOpen(true)}>
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  <span>Edit Profile</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
                 <DropdownMenuItem onClick={() => {
                   navigate('/dashboard');
                   setTimeout(() => {
@@ -296,6 +314,15 @@ export const Header = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              
+              {/* Profile Section */}
+              <DropdownMenuItem onClick={() => setIsProfileModalOpen(true)}>
+                <Edit3 className="mr-2 h-4 w-4" />
+                <span>Edit Profile</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
               <DropdownMenuItem onClick={() => {
                 navigate('/dashboard');
                 setTimeout(() => {
@@ -455,6 +482,14 @@ export const Header = () => {
           </div>
         </NavbarCollapseContent>
       </NavbarCollapse>
+      
+      {/* Profile Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={currentUser}
+        onUpdate={handleProfileUpdate}
+      />
     </Navbar>
   );
 };
