@@ -22,6 +22,9 @@ import BarDetailsPage from "./pages/BarDetails";
 import ContactPage from "./pages/Contact";
 import ConnectSuccessPage from "./pages/ConnectSuccess";
 import { AdminPage } from "./pages/Admin";
+import CookiePolicyPage from "./pages/CookiePolicy";
+import TermsAndConditionsPage from "./pages/TermsAndConditions";
+import CookiePolicyPopup from "./components/CookiePolicyPopup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +51,8 @@ const AppRoutes = () => {
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/dashboard/connect/success" element={<ConnectSuccessPage />} />
       <Route path="/dashboard/connect/refresh" element={<ConnectSuccessPage />} />
+      <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+      <Route path="/terms" element={<TermsAndConditionsPage />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -63,6 +68,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <AppRoutes />
+            <CookiePolicyPopup />
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>

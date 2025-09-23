@@ -1,5 +1,7 @@
 import { Waves, Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import CookiePreferencesManager from './CookiePreferencesManager';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -28,8 +30,8 @@ export const Footer = () => {
     ],
     Legal: [
       { label: 'Privacy Policy', href: '#' },
-      { label: 'Terms of Service', href: '#' },
-      { label: 'Cookie Policy', href: '#' },
+      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Cookie Policy', href: '/cookie-policy' },
       { label: 'Accessibility', href: '#' },
       { label: 'Sitemap', href: '#' },
     ],
@@ -123,12 +125,21 @@ export const Footer = () => {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-white/80 hover:text-white transition-smooth hover:translate-x-1 inline-block"
-                    >
-                      {link.label}
-                    </a>
+                    {link.href.startsWith('/') ? (
+                      <Link
+                        to={link.href}
+                        className="text-white/80 hover:text-white transition-smooth hover:translate-x-1 inline-block"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-white/80 hover:text-white transition-smooth hover:translate-x-1 inline-block"
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -144,16 +155,16 @@ export const Footer = () => {
             <p className="text-white/60 text-sm">
               © {currentYear} BeachVibe. All rights reserved.
             </p>
-            <div className="flex space-x-6 mt-4 sm:mt-0">
-              <a href="#" className="text-white/60 hover:text-white text-sm transition-smooth">
-                Privacy
-              </a>
-              <a href="#" className="text-white/60 hover:text-white text-sm transition-smooth">
-                Terms
-              </a>
-              <a href="#" className="text-white/60 hover:text-white text-sm transition-smooth">
-                Cookies
-              </a>
+            <div className="flex flex-col sm:flex-row items-center gap-4 mt-4 sm:mt-0">
+              <div className="flex space-x-6">
+                <Link to="/terms" className="text-white/60 hover:text-white text-sm transition-smooth">
+                  Terms
+                </Link>
+                <Link to="/cookie-policy" className="text-white/60 hover:text-white text-sm transition-smooth">
+                  Cookies
+                </Link>
+              </div>
+              <CookiePreferencesManager />
             </div>
           </div>
         </div>
