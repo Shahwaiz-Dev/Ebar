@@ -11,6 +11,7 @@ import {
   Booking,
   Order
 } from '@/lib/firestore';
+import { useEmailService } from '@/hooks/useEmailService';
 import { toast } from 'sonner';
 
 // Query keys
@@ -77,13 +78,34 @@ export const useOrdersByBar = (barId: string) => {
 // Create booking mutation
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();
+  const { sendBookingConfirmationEmail } = useEmailService();
 
   return useMutation({
     mutationFn: createBooking,
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // Invalidate and refetch bookings lists
       queryClient.invalidateQueries({ queryKey: bookingKeys.user(variables.userId) });
       queryClient.invalidateQueries({ queryKey: bookingKeys.bar(variables.barId) });
+      
+      // Send booking confirmation email
+      try {
+        await sendBookingConfirmationEmail({
+          firstName: variables.customerName.split(' ')[0] || '',
+          lastName: variables.customerName.split(' ').slice(1).join(' ') || '',
+          email: variables.customerEmail,
+          barName: variables.barName,
+          barLocation: '', // You might want to fetch this from bar data
+          bookingDate: variables.date,
+          bookingTime: variables.time,
+          spotType: variables.type === 'sunbed' ? 'Sunbed' : 'Umbrella',
+          spotNumber: variables.spotId || '',
+          totalAmount: variables.total,
+          bookingId: data.id || '',
+        });
+      } catch (error) {
+        console.error('Failed to send booking confirmation email:', error);
+        // Don't show error to user - booking was successful
+      }
       
       toast.success('Booking created successfully!');
     },

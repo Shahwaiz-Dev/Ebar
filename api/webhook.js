@@ -6,6 +6,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+// Email service for sending notifications
+const sendEmail = async (type, data) => {
+  try {
+    const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type, data }),
+    });
+    
+    const result = await response.json();
+    return result.success;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return false;
+  }
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -38,9 +57,29 @@ export default async function handler(req, res) {
           ownerId: paymentIntent.metadata.ownerId,
         });
         
+        // Send payment confirmation email if customer email is available
+        if (paymentIntent.metadata.customerEmail) {
+          try {
+            await sendEmail('booking', {
+              firstName: paymentIntent.metadata.customerName?.split(' ')[0] || 'Customer',
+              lastName: paymentIntent.metadata.customerName?.split(' ').slice(1).join(' ') || '',
+              email: paymentIntent.metadata.customerEmail,
+              barName: paymentIntent.metadata.barName || 'Beach Bar',
+              barLocation: paymentIntent.metadata.barLocation || '',
+              bookingDate: paymentIntent.metadata.bookingDate || '',
+              bookingTime: paymentIntent.metadata.bookingTime || '',
+              spotType: paymentIntent.metadata.spotType || 'Spot',
+              spotNumber: paymentIntent.metadata.spotNumber || '',
+              totalAmount: paymentIntent.amount / 100, // Convert from cents
+              bookingId: paymentIntent.metadata.bookingId || paymentIntent.id,
+            });
+          } catch (error) {
+            console.error('Failed to send payment confirmation email:', error);
+          }
+        }
+        
         // Here you can add logic to:
         // - Update booking/order status in your database
-        // - Send confirmation emails to customer and bar owner
         // - Update bar owner's earnings
         // - Send notification to bar owner
       }

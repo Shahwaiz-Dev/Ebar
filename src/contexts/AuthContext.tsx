@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { useEmailService } from '@/hooks/useEmailService';
 
 export interface AuthUser {
   uid: string;
@@ -55,6 +56,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const { sendWelcomeEmail, sendAccountDeletionEmail } = useEmailService();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -108,6 +110,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
 
       setCurrentUser(userData);
+
+      // Send welcome email
+      try {
+        await sendWelcomeEmail({
+          firstName,
+          lastName,
+          email,
+        });
+      } catch (error) {
+        console.error('Failed to send welcome email:', error);
+        // Don't throw error - user registration should still succeed
+      }
     } catch (error) {
       console.error('Error signing up:', error);
       throw error;
@@ -196,6 +210,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!currentUser || !auth.currentUser) throw new Error('No user logged in');
 
     try {
+      // Send account deletion confirmation email before deletion
+      try {
+        await sendAccountDeletionEmail({
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+          email: currentUser.email || '',
+          deletionDate: new Date().toLocaleDateString(),
+        });
+      } catch (error) {
+        console.error('Failed to send account deletion email:', error);
+        // Continue with deletion even if email fails
+      }
+
       // Delete user document from Firestore
       await deleteDoc(doc(db, 'users', currentUser.uid));
       
