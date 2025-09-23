@@ -1,4 +1,4 @@
-import { emailService, WelcomeEmailData, BookingEmailData, AccountDeletionEmailData } from '@/lib/emailService';
+import { emailService } from '../src/lib/emailService';
 
 // Welcome Email API
 export default async function handler(req, res) {
@@ -8,20 +8,28 @@ export default async function handler(req, res) {
 
   const { type, data } = req.body;
 
+  // Check if environment variables are set
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('Missing email environment variables');
+    return res.status(500).json({ 
+      error: 'Email service not configured. Missing EMAIL_USER or EMAIL_PASS environment variables.' 
+    });
+  }
+
   try {
     let success = false;
 
     switch (type) {
       case 'welcome':
-        success = await emailService.sendWelcomeEmail(data as WelcomeEmailData);
+        success = await emailService.sendWelcomeEmail(data);
         break;
       
       case 'booking':
-        success = await emailService.sendBookingConfirmationEmail(data as BookingEmailData);
+        success = await emailService.sendBookingConfirmationEmail(data);
         break;
       
       case 'account_deletion':
-        success = await emailService.sendAccountDeletionEmail(data as AccountDeletionEmailData);
+        success = await emailService.sendAccountDeletionEmail(data);
         break;
       
       default:
@@ -35,7 +43,10 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Email API error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message 
+    });
   }
 }
 
