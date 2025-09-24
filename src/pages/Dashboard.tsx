@@ -212,17 +212,17 @@ export const DashboardPage = () => {
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Dashboard Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                   Welcome back, {currentUser.firstName}!
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground">
                   Manage your beach bars and track your business
                 </p>
               </div>
-              <Button variant="outline" onClick={handleLogout}>
+              <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
@@ -230,55 +230,55 @@ export const DashboardPage = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Bars</p>
-                    <p className="text-2xl font-bold">{stats?.totalBars || 0}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Bars</p>
+                    <p className="text-lg sm:text-2xl font-bold">{stats?.totalBars || 0}</p>
                   </div>
-                  <Building2 className="h-8 w-8 text-primary" />
+                  <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Active Bookings</p>
-                    <p className="text-2xl font-bold">{stats?.activeBookings || 0}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Active Bookings</p>
+                    <p className="text-lg sm:text-2xl font-bold">{stats?.activeBookings || 0}</p>
                   </div>
-                  <BarChart3 className="h-8 w-8 text-green-500" />
+                  <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Today's Revenue</p>
-                    <p className="text-2xl font-bold">${stats?.todayRevenue?.toLocaleString() || 0}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Today's Revenue</p>
+                    <p className="text-lg sm:text-2xl font-bold">${stats?.todayRevenue?.toLocaleString() || 0}</p>
                   </div>
-                  <BarChart3 className="h-8 w-8 text-blue-500" />
+                  <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Customers</p>
-                    <p className="text-2xl font-bold">{stats?.totalCustomers || 0}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Customers</p>
+                    <p className="text-lg sm:text-2xl font-bold">{stats?.totalCustomers || 0}</p>
                   </div>
-                  <Users className="h-8 w-8 text-orange-500" />
+                  <Users className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Main Dashboard Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
             {/* Sidebar */}
             <div className="lg:col-span-1">
               <Card>
@@ -292,7 +292,7 @@ export const DashboardPage = () => {
                   {bars.map((bar) => (
                     <div
                       key={bar.id}
-                      className={`p-3 rounded-lg cursor-pointer transition-all group relative ${
+                      className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-all group relative ${
                         selectedBar?.id === bar.id
                           ? 'bg-primary/10 border border-primary/20'
                           : 'bg-muted/50 hover:bg-muted'
@@ -302,7 +302,7 @@ export const DashboardPage = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-sm">{bar.name}</h3>
+                            <h3 className="font-semibold text-xs sm:text-sm">{bar.name}</h3>
                             {bar.isVerified ? (
                               <Badge variant="default" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                 ✓ Verified
@@ -337,10 +337,10 @@ export const DashboardPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className="w-full text-xs sm:text-sm"
                     onClick={() => setShowAddBar(true)}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Add New Bar
                   </Button>
                 </CardContent>
@@ -350,14 +350,14 @@ export const DashboardPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-7">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="bookings">Bookings</TabsTrigger>
-                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                  <TabsTrigger value="qr-codes">QR Codes</TabsTrigger>
-                  <TabsTrigger value="menu">Menu</TabsTrigger>
-                  <TabsTrigger value="payments">Payments</TabsTrigger>
-                  <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+                  <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+                  <TabsTrigger value="bookings" className="text-xs sm:text-sm">Bookings</TabsTrigger>
+                  <TabsTrigger value="analytics" className="text-xs sm:text-sm">Analytics</TabsTrigger>
+                  <TabsTrigger value="qr-codes" className="text-xs sm:text-sm">QR Codes</TabsTrigger>
+                  <TabsTrigger value="menu" className="text-xs sm:text-sm">Menu</TabsTrigger>
+                  <TabsTrigger value="payments" className="text-xs sm:text-sm">Payments</TabsTrigger>
+                  <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
                 </TabsList>
 
                 {/* Overview Tab */}
@@ -368,7 +368,7 @@ export const DashboardPage = () => {
                         <CardTitle>{selectedBar.name} - Overview</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                           <div>
                             <h3 className="font-semibold mb-3">Bar Information</h3>
                             <div className="space-y-2 text-sm">
@@ -381,7 +381,7 @@ export const DashboardPage = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold mb-3">Quick Stats</h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                               <div>
                                 <p className="text-muted-foreground">Available Sunbeds</p>
                                 <p className="font-semibold">

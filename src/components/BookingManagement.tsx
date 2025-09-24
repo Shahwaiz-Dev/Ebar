@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, Users, MapPin, Check, X } from 'lucide-react';
 import { useBookingsByBar, useUpdateBookingStatus } from '@/hooks/useBookings';
+import { useEmailService } from '@/hooks/useEmailService';
+import { getUserById, getBeachBarById } from '@/lib/firestore';
 import { toast } from 'sonner';
 
 interface BookingManagementProps {
@@ -13,6 +15,7 @@ interface BookingManagementProps {
 export const BookingManagement = ({ barId }: BookingManagementProps) => {
   const { data: bookings = [], isLoading } = useBookingsByBar(barId);
   const updateBookingStatusMutation = useUpdateBookingStatus();
+  const { sendBookingConfirmationEmail } = useEmailService();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -34,8 +37,46 @@ export const BookingManagement = ({ barId }: BookingManagementProps) => {
     }
   };
 
-  const handleAcceptBooking = (bookingId: string) => {
-    handleUpdateBookingStatus(bookingId, 'confirmed');
+  const handleAcceptBooking = async (bookingId: string) => {
+    try {
+      // Find the booking to get its details
+      const booking = bookings.find(b => b.id === bookingId);
+      if (!booking) {
+        toast.error('Booking not found');
+        return;
+      }
+
+      // Update the booking status first
+      await updateBookingStatusMutation.mutateAsync({ id: bookingId, status: 'confirmed' });
+      
+      // Get bar details for location
+      const bar = await getBeachBarById(booking.barId);
+      
+      // Send confirmation email
+      const emailData = {
+        firstName: booking.customerName.split(' ')[0] || booking.customerName,
+        lastName: booking.customerName.split(' ').slice(1).join(' ') || '',
+        email: booking.customerEmail,
+        barName: booking.barName,
+        barLocation: bar?.location || 'Beach Location',
+        bookingDate: booking.date,
+        bookingTime: booking.time,
+        spotType: booking.type === 'sunbed' ? 'Sunbed' : 'Umbrella',
+        spotNumber: booking.spotId,
+        totalAmount: booking.total,
+        bookingId: bookingId,
+      };
+
+      const emailSent = await sendBookingConfirmationEmail(emailData);
+      if (emailSent) {
+        toast.success('Booking confirmed and confirmation email sent!');
+      } else {
+        toast.success('Booking confirmed, but email could not be sent.');
+      }
+    } catch (error) {
+      console.error('Error accepting booking:', error);
+      toast.error('Failed to accept booking. Please try again.');
+    }
   };
 
   const handleRejectBooking = (bookingId: string) => {
