@@ -32,6 +32,7 @@ interface ConnectAccount {
 interface ConnectOnboardingProps {
   ownerId: string;
   barName: string;
+  barId: string;
   ownerEmail: string;
   onAccountCreated?: (accountId: string) => void;
 }
@@ -39,6 +40,7 @@ interface ConnectOnboardingProps {
 export const ConnectOnboarding = ({ 
   ownerId, 
   barName, 
+  barId,
   ownerEmail,
   onAccountCreated 
 }: ConnectOnboardingProps) => {
@@ -92,8 +94,9 @@ export const ConnectOnboarding = ({
         throw new Error('Failed to open new window. Please check your popup blocker settings.');
       }
       
-      // Store account ID for future reference
+      // Store account ID and bar ID for future reference
       localStorage.setItem('connectAccountId', data.accountId);
+      localStorage.setItem('currentBarId', barId);
       
       if (onAccountCreated) {
         onAccountCreated(data.accountId);

@@ -13,6 +13,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { updateBeachBarConnectAccount } from '@/lib/firestore';
 
 export const ConnectSuccessPage = () => {
   const navigate = useNavigate();
@@ -57,6 +58,18 @@ export const ConnectSuccessPage = () => {
 
       if (data.isOnboarded) {
         toast.success('Account setup completed successfully!');
+        
+        // Update the bar's Connect account status to 'active'
+        try {
+          const barId = searchParams.get('barId') || localStorage.getItem('currentBarId');
+          if (barId) {
+            await updateBeachBarConnectAccount(barId, accountId, 'active');
+            console.log('Updated bar Connect account status to active');
+          }
+        } catch (error) {
+          console.error('Error updating bar Connect account status:', error);
+          // Don't show error to user as the main success is still valid
+        }
       } else if (data.detailsSubmitted) {
         toast.info('Account details submitted and under review');
       }

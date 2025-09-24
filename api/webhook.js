@@ -134,16 +134,42 @@ export default async function handler(req, res) {
       console.log('Charge failed:', failedCharge.id);
       break;
       
-    // Connect-specific events
-    case 'account.updated':
-      const account = event.data.object;
-      console.log('Connect account updated:', account.id);
-      
-      // Handle account updates (e.g., onboarding completion)
-      // - Update bar owner's account status in your database
-      // - Send notification about account status change
-      
-      break;
+            // Connect-specific events
+            case 'account.updated':
+              const account = event.data.object;
+              console.log('Connect account updated:', {
+                id: account.id,
+                chargesEnabled: account.charges_enabled,
+                payoutsEnabled: account.payouts_enabled,
+                detailsSubmitted: account.details_submitted,
+              });
+
+              // Update bar's Connect account status in database
+              try {
+                const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/update-bar-connect-status`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    connectAccountId: account.id,
+                    chargesEnabled: account.charges_enabled,
+                    payoutsEnabled: account.payouts_enabled,
+                    detailsSubmitted: account.details_submitted,
+                  }),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                  console.log('Updated bar Connect account status:', account.id);
+                } else {
+                  console.error('Failed to update bar Connect account status:', result.error);
+                }
+              } catch (error) {
+                console.error('Error updating bar Connect account status:', error);
+              }
+
+              break;
       
     case 'transfer.created':
       const transfer = event.data.object;

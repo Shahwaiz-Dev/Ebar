@@ -31,6 +31,21 @@ export default async function handler(req, res) {
     const platformFeeAmount = Math.round(amount * 0.03); // 3% platform fee
     const ownerAmount = amount - platformFeeAmount;
 
+    // Verify Connect account is active and can receive payments
+    const connectAccount = await stripe.accounts.retrieve(connectAccountId);
+    console.log('Connect account status:', {
+      id: connectAccount.id,
+      chargesEnabled: connectAccount.charges_enabled,
+      payoutsEnabled: connectAccount.payouts_enabled,
+      detailsSubmitted: connectAccount.details_submitted,
+    });
+
+    if (!connectAccount.charges_enabled) {
+      return res.status(400).json({ 
+        error: 'Connect account is not ready to receive payments. Please complete the onboarding process.' 
+      });
+    }
+
     // Create PaymentIntent with Connect account
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents
@@ -49,6 +64,13 @@ export default async function handler(req, res) {
       automatic_payment_methods: {
         enabled: true,
       },
+    });
+
+    console.log('PaymentIntent created:', {
+      id: paymentIntent.id,
+      amount: paymentIntent.amount,
+      applicationFee: paymentIntent.application_fee_amount,
+      destination: paymentIntent.transfer_data?.destination,
     });
 
     res.status(200).json({

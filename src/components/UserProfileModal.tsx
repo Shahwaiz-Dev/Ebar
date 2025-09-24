@@ -26,6 +26,8 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
     businessName: user?.businessName || '',
     businessAddress: user?.businessAddress || ''
   });
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +48,31 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
 
   const handleDeleteAccount = async () => {
     try {
-      await deleteAccount();
+      await deleteAccount(deletePassword);
       toast.success('Account deleted successfully');
+      setShowDeleteConfirmation(false);
+      setDeletePassword('');
       onClose();
     } catch (error) {
       console.error('Error deleting account:', error);
-      toast.error('Failed to delete account. Please try again.');
+      if (error.message.includes('Invalid password')) {
+        toast.error('Invalid password. Please try again.');
+      } else if (error.message.includes('requires-recent-login')) {
+        toast.error('Please enter your password to confirm account deletion.');
+      } else {
+        toast.error('Failed to delete account. Please try again.');
+      }
     }
+  };
+
+  const handleShowDeleteConfirmation = () => {
+    setShowDeleteConfirmation(true);
+    setDeletePassword('');
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    setDeletePassword('');
   };
 
   return (
@@ -132,9 +152,9 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
           )}
 
           <div className="flex justify-between items-center pt-4">
-            <AlertDialog>
+            <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
               <AlertDialogTrigger asChild>
-                <Button type="button" variant="destructive" size="sm">
+                <Button type="button" variant="destructive" size="sm" onClick={handleShowDeleteConfirmation}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Account
                 </Button>
@@ -147,9 +167,28 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
                     All your data, bookings, and preferences will be permanently removed.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="deletePassword">Enter your password to confirm:</Label>
+                    <Input
+                      id="deletePassword"
+                      type="password"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteAccount} 
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={!deletePassword.trim()}
+                  >
                     Delete Account
                   </AlertDialogAction>
                 </AlertDialogFooter>

@@ -9,7 +9,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
-  deleteUser
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -37,7 +39,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUserProfile: (data: Partial<AuthUser>) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: (password?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -214,10 +216,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const deleteAccount = async () => {
+  const deleteAccount = async (password?: string) => {
     if (!currentUser || !auth.currentUser) throw new Error('No user logged in');
 
     try {
+      // Re-authenticate user before deletion (required by Firebase for security)
+      if (password && currentUser.email) {
+        try {
+          const credential = EmailAuthProvider.credential(currentUser.email, password);
+          await reauthenticateWithCredential(auth.currentUser, credential);
+          console.log('User re-authenticated successfully');
+        } catch (reauthError) {
+          console.error('Re-authentication failed:', reauthError);
+          throw new Error('Invalid password. Please try again.');
+        }
+      } else {
+        // If no password provided, try to proceed anyway (might work if recently authenticated)
+        console.log('No password provided for re-authentication, proceeding with deletion');
+      }
+
       // Send account deletion confirmation email before deletion
       try {
         await sendAccountDeletionEmail({

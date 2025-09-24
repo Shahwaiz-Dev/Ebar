@@ -605,6 +605,7 @@ export const DashboardPage = () => {
                       <ConnectOnboarding
                         ownerId={currentUser.uid}
                         barName={selectedBar.name}
+                        barId={selectedBar.id!}
                         ownerEmail={currentUser.email || 'owner@example.com'}
                         onAccountCreated={handleConnectAccountCreated}
                       />
