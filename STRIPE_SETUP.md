@@ -91,9 +91,7 @@ Before going live:
 
 Enable debug logging by adding to your environment:
 
-```env
-DEBUG=stripe:*
-```
+
 
 ## Support
 
