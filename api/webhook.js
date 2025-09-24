@@ -25,6 +25,12 @@ const sendEmail = async (type, data) => {
   }
 };
 
+export const config = {
+  api: {
+    bodyParser: false, // Disable body parsing to get raw body
+  },
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -35,7 +41,9 @@ export default async function handler(req, res) {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    // Get the raw body as a Buffer
+    const body = req.body;
+    event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
