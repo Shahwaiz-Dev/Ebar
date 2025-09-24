@@ -19,8 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				poppins: ['Poppins', 'sans-serif'],
-				playfair: ['Playfair Display', 'serif'],
+				geist: ['Geist', 'sans-serif'],
+				sans: ['Geist', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

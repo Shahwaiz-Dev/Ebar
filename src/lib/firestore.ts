@@ -321,9 +321,16 @@ export const deleteAllUserData = async (userId: string) => {
       const result = await response.json();
       if (result.success) {
         results.stripeConnectAccounts = result.deletedCount;
-        console.log(`Deleted ${result.deletedCount} Stripe Connect accounts for user ${userId}`);
+        console.log(`Stripe Connect cleanup for user ${userId}:`, {
+          deleted: result.deletedCount,
+          failed: result.failedCount,
+          balanceIssues: result.balanceIssues,
+          alreadyDeleted: result.alreadyDeleted
+        });
       } else {
         console.error('Failed to delete Stripe Connect accounts:', result.error);
+        // Still count as partial success if some accounts were processed
+        results.stripeConnectAccounts = result.deletedCount || 0;
       }
     } catch (error) {
       console.error('Error deleting Stripe Connect accounts:', error);
