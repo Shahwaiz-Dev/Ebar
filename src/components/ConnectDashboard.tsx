@@ -59,9 +59,12 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
   const fetchPaymentStats = async () => {
     try {
       setIsRefreshing(true);
+      console.log('Fetching payment stats for account:', accountId);
       
       const response = await fetch(`/api/get-payment-stats?accountId=${accountId}`);
       const result = await response.json();
+
+      console.log('Payment stats response:', result);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch payment stats');
@@ -88,7 +91,12 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
   };
 
   useEffect(() => {
-    fetchPaymentStats();
+    if (accountId) {
+      fetchPaymentStats();
+    } else {
+      console.log('No accountId provided to ConnectDashboard');
+      setIsLoading(false);
+    }
   }, [accountId]);
 
   const formatCurrency = (amount: number) => {
@@ -109,8 +117,10 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
   };
 
   const handleDisconnectAccount = async () => {
+    console.log('Disconnect button clicked for bar:', barId, 'account:', accountId);
     if (window.confirm('Are you sure you want to disconnect this Stripe account? This will remove payment processing for this bar.')) {
       try {
+        console.log('Proceeding with disconnect...');
         await disconnectStripeAccountMutation.mutateAsync({ 
           barId, 
           accountId 
@@ -137,6 +147,37 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
   if (isLoading) {
     return (
       <div className="space-y-6">
+        {/* Header with disconnect button even during loading */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold">Payment Dashboard</h2>
+            <p className="text-muted-foreground">Manage payments for {barName}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              disabled={true}
+            >
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Loading...
+            </Button>
+            <Button variant="outline" size="sm" disabled={true}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={handleDisconnectAccount}
+              disabled={disconnectStripeAccountMutation.isPending}
+            >
+              <Unlink className="h-4 w-4 mr-2" />
+              Disconnect
+            </Button>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i}>
