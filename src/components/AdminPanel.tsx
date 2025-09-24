@@ -146,23 +146,6 @@ export const AdminPanel = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
-  // Test email function
-  const testVerificationEmail = async () => {
-    try {
-      await sendBarVerificationEmail({
-        firstName: 'Test',
-        lastName: 'User',
-        email: 'shahwaizn933@gmail.com', // Your email for testing
-        barName: 'Test Beach Bar',
-        barLocation: 'Test Location',
-        isApproved: true
-      });
-      toast.success('Test verification email sent!');
-    } catch (error) {
-      console.error('Error sending test email:', error);
-      toast.error('Failed to send test email');
-    }
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -174,24 +157,14 @@ export const AdminPanel = () => {
               Manage bar verifications and oversee platform content
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={testVerificationEmail}
-              className="flex items-center gap-2"
-            >
-              <Shield className="h-4 w-4" />
-              Test Email
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home className="h-4 w-4" />
-              Back to Website
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2"
+          >
+            <Home className="h-4 w-4" />
+            Back to Website
+          </Button>
         </div>
       </div>
 

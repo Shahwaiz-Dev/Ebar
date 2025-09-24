@@ -436,10 +436,27 @@ export const getBookingsByBar = async (barId: string) => {
 export const updateBookingStatus = async (id: string, status: Booking['status']) => {
   try {
     const docRef = doc(db, 'bookings', id);
+    
+    // First, get the booking to verify it exists and log details
+    const bookingDoc = await getDoc(docRef);
+    if (!bookingDoc.exists()) {
+      throw new Error('Booking not found');
+    }
+    
+    const bookingData = bookingDoc.data();
+    console.log('Updating booking status:', { 
+      id, 
+      status, 
+      barId: bookingData.barId, 
+      userId: bookingData.userId 
+    });
+    
     await updateDoc(docRef, {
       status,
       updatedAt: serverTimestamp(),
     });
+    
+    console.log('Booking status updated successfully');
   } catch (error) {
     console.error('Error updating booking status:', error);
     throw error;

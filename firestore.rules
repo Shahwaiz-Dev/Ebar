@@ -29,8 +29,9 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.userId || 
-        exists(/databases/$(database.name)/documents/beachBars/$(resource.data.barId)) &&
-        get(/databases/$(database.name)/documents/beachBars/$(resource.data.barId)).data.ownerId == request.auth.uid
+        exists(/databases/$(database)/documents/beachBars/$(resource.data.barId)) &&
+        get(/databases/$(database)/documents/beachBars/$(resource.data.barId)).data.ownerId == request.auth.uid ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
       );
       allow delete: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
@@ -46,7 +47,8 @@ service cloud.firestore {
       allow read, update: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
         (exists(/databases/$(database)/documents/beachBars/$(resource.data.barId)) &&
-         get(/databases/$(database)/documents/beachBars/$(resource.data.barId)).data.ownerId == request.auth.uid)
+         get(/databases/$(database)/documents/beachBars/$(resource.data.barId)).data.ownerId == request.auth.uid) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
       );
       allow delete: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
