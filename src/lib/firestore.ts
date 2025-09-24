@@ -298,6 +298,7 @@ export const deleteAllUserData = async (userId: string) => {
       orders: 0,
       reviews: 0,
       favorites: 0,
+      stripeConnectAccounts: 0,
     };
 
     // Delete all bars owned by user (if they're an owner)
@@ -305,6 +306,27 @@ export const deleteAllUserData = async (userId: string) => {
       results.bars = await deleteAllBarsByOwner(userId);
     } catch (error) {
       console.error('Error deleting user bars:', error);
+    }
+
+    // Delete all Stripe Connect accounts for user's bars
+    try {
+      const response = await fetch('/api/delete-user-stripe-accounts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        results.stripeConnectAccounts = result.deletedCount;
+        console.log(`Deleted ${result.deletedCount} Stripe Connect accounts for user ${userId}`);
+      } else {
+        console.error('Failed to delete Stripe Connect accounts:', result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting Stripe Connect accounts:', error);
     }
 
     // Delete all bookings by user
