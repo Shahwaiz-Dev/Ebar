@@ -6,6 +6,7 @@ import {
   createBeachBar,
   updateBeachBar,
   deleteBeachBar,
+  disconnectStripeAccount,
   BeachBar
 } from '@/lib/firestore';
 import { toast } from 'sonner';
@@ -118,6 +119,44 @@ export const useDeleteBeachBar = () => {
     onError: (error) => {
       console.error('Error deleting beach bar:', error);
       toast.error('Failed to delete beach bar. Please try again.');
+    },
+  });
+};
+
+// Disconnect Stripe account mutation
+export const useDisconnectStripeAccount = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ barId, accountId }: { barId: string; accountId: string }) => {
+      // Call the disconnect API
+      const response = await fetch('/api/disconnect-stripe-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accountId, barId }),
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to disconnect Stripe account');
+      }
+
+      // Remove the connect account ID from the bar in Firestore
+      await disconnectStripeAccount(barId);
+      
+      return result;
+    },
+    onSuccess: () => {
+      // Invalidate beach bar queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: beachBarKeys.all });
+      toast.success('Stripe account disconnected successfully!');
+    },
+    onError: (error) => {
+      console.error('Error disconnecting Stripe account:', error);
+      toast.error('Failed to disconnect Stripe account. Please try again.');
     },
   });
 }; 

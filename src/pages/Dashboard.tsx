@@ -614,6 +614,7 @@ export const DashboardPage = () => {
                         <ConnectDashboard
                           accountId={selectedBar.connectAccountId}
                           barName={selectedBar.name}
+                          barId={selectedBar.id!}
                         />
                       )}
                     </div>

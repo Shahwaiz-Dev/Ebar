@@ -983,4 +983,19 @@ export const getUserById = async (userId: string) => {
     console.error('Error getting user by ID:', error);
     throw error;
   }
+};
+
+// Disconnect Stripe account from bar
+export const disconnectStripeAccount = async (barId: string) => {
+  try {
+    const barRef = doc(db, 'beachBars', barId);
+    await updateDoc(barRef, {
+      connectAccountId: null,
+      updatedAt: serverTimestamp(),
+    });
+    console.log('Stripe account disconnected from bar:', barId);
+  } catch (error) {
+    console.error('Error disconnecting Stripe account from bar:', error);
+    throw error;
+  }
 }; 

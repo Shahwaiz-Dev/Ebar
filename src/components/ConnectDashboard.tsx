@@ -10,9 +10,11 @@ import {
   CreditCard,
   ExternalLink,
   Download,
-  RefreshCw
+  RefreshCw,
+  Unlink
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useDisconnectStripeAccount } from '@/hooks/useBeachBars';
 
 interface PaymentStats {
   totalEarnings: number;
@@ -28,57 +30,57 @@ interface PaymentStats {
     status: string;
     createdAt: string;
     customerEmail?: string;
+    description?: string;
   }>;
+  balance?: {
+    available: Array<{
+      amount: number;
+      currency: string;
+    }>;
+    pending: Array<{
+      amount: number;
+      currency: string;
+    }>;
+  };
 }
 
 interface ConnectDashboardProps {
   accountId: string;
   barName: string;
+  barId: string;
 }
 
-export const ConnectDashboard = ({ accountId, barName }: ConnectDashboardProps) => {
+export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboardProps) => {
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const disconnectStripeAccountMutation = useDisconnectStripeAccount();
 
   const fetchPaymentStats = async () => {
     try {
       setIsRefreshing(true);
       
-      // In a real implementation, you'd fetch this from your backend
-      // which would aggregate data from Stripe Connect
-      const mockStats: PaymentStats = {
-        totalEarnings: 2450.00,
-        platformFees: 73.50,
-        netEarnings: 2376.50,
-        pendingPayouts: 450.00,
-        completedPayouts: 1926.50,
-        recentTransactions: [
-          {
-            id: 'pi_1234567890',
-            amount: 150.00,
-            platformFee: 4.50,
-            netAmount: 145.50,
-            status: 'completed',
-            createdAt: '2024-01-15T10:30:00Z',
-            customerEmail: 'customer@example.com'
-          },
-          {
-            id: 'pi_0987654321',
-            amount: 75.00,
-            platformFee: 2.25,
-            netAmount: 72.75,
-            status: 'pending',
-            createdAt: '2024-01-14T15:45:00Z',
-            customerEmail: 'guest@example.com'
-          }
-        ]
-      };
+      const response = await fetch(`/api/get-payment-stats?accountId=${accountId}`);
+      const result = await response.json();
 
-      setStats(mockStats);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch payment stats');
+      }
+
+      setStats(result.data);
     } catch (error) {
       console.error('Error fetching payment stats:', error);
       toast.error('Failed to load payment statistics');
+      
+      // Set empty stats on error
+      setStats({
+        totalEarnings: 0,
+        platformFees: 0,
+        netEarnings: 0,
+        pendingPayouts: 0,
+        completedPayouts: 0,
+        recentTransactions: [],
+      });
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -104,6 +106,19 @@ export const ConnectDashboard = ({ accountId, barName }: ConnectDashboardProps) 
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const handleDisconnectAccount = async () => {
+    if (window.confirm('Are you sure you want to disconnect this Stripe account? This will remove payment processing for this bar.')) {
+      try {
+        await disconnectStripeAccountMutation.mutateAsync({ 
+          barId, 
+          accountId 
+        });
+      } catch (error) {
+        console.error('Error disconnecting account:', error);
+      }
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -160,6 +175,15 @@ export const ConnectDashboard = ({ accountId, barName }: ConnectDashboardProps) 
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
+          <Button 
+            variant="destructive" 
+            size="sm"
+            onClick={handleDisconnectAccount}
+            disabled={disconnectStripeAccountMutation.isPending}
+          >
+            <Unlink className="h-4 w-4 mr-2" />
+            Disconnect
+          </Button>
         </div>
       </div>
 
@@ -214,6 +238,52 @@ export const ConnectDashboard = ({ accountId, barName }: ConnectDashboardProps) 
         </Card>
       </div>
 
+      {/* Account Balance */}
+      {stats?.balance && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Account Balance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium text-green-600">Available Balance</h4>
+                {stats.balance.available.length > 0 ? (
+                  stats.balance.available.map((balance, index) => (
+                    <div key={index} className="text-2xl font-bold">
+                      {formatCurrency(balance.amount)} {balance.currency.toUpperCase()}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-2xl font-bold text-gray-500">$0.00</div>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  Ready for payout
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium text-orange-600">Pending Balance</h4>
+                {stats.balance.pending.length > 0 ? (
+                  stats.balance.pending.map((balance, index) => (
+                    <div key={index} className="text-2xl font-bold">
+                      {formatCurrency(balance.amount)} {balance.currency.toUpperCase()}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-2xl font-bold text-gray-500">$0.00</div>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  Processing payments
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recent Transactions */}
       <Card>
         <CardHeader>
@@ -224,13 +294,17 @@ export const ConnectDashboard = ({ accountId, barName }: ConnectDashboardProps) 
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {stats?.recentTransactions.map((transaction) => (
+            {stats?.recentTransactions && stats.recentTransactions.length > 0 ? (
+              stats.recentTransactions.map((transaction) => (
               <div key={transaction.id}>
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Payment #{transaction.id.slice(-8)}</span>
                       {getStatusBadge(transaction.status)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {transaction.description || 'Beach bar booking'}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {transaction.customerEmail && `Customer: ${transaction.customerEmail}`}
@@ -251,7 +325,16 @@ export const ConnectDashboard = ({ accountId, barName }: ConnectDashboardProps) 
                 </div>
                 <Separator className="my-2" />
               </div>
-            ))}
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-muted-foreground">No recent transactions</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Transactions will appear here once customers make payments
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="mt-4 text-center">
