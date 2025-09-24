@@ -1,10 +1,18 @@
 import Stripe from 'stripe';
+import { buffer } from 'micro';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2024-12-18.acacia',
 });
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+// Disable body parsing for this endpoint
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 // Email service for sending notifications
 const sendEmail = async (type, data) => {
@@ -35,35 +43,24 @@ export default async function handler(req, res) {
   let event;
 
   try {
-    // Try multiple approaches to get the raw body
-    let rawBody;
-    
-    if (typeof req.body === 'string') {
-      rawBody = req.body;
-    } else if (Buffer.isBuffer(req.body)) {
-      rawBody = req.body;
-    } else {
-      // If body is parsed as JSON, reconstruct it
-      rawBody = JSON.stringify(req.body);
-    }
-    
-    event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
+    // Get the raw body using micro's buffer function
+    const buf = await buffer(req);
+    event = stripe.webhooks.constructEvent(buf, sig, endpointSecret);
+    console.log('Webhook signature verification successful');
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
-    console.error('Request body type:', typeof req.body);
-    console.error('Request body:', req.body);
-    console.error('Signature:', sig);
+    console.error('Signature header:', sig);
     
-    // If signature verification fails, we can still process the event
-    // but we should log this for security monitoring
-    console.warn('Processing webhook without signature verification - this should be investigated');
+    // For debugging - let's see what we're working with
+    try {
+      const buf = await buffer(req);
+      console.error('Raw body length:', buf.length);
+      console.error('Raw body preview:', buf.toString('utf8').substring(0, 200));
+    } catch (bufferErr) {
+      console.error('Failed to get raw body:', bufferErr.message);
+    }
     
-    // Create event object manually (less secure but functional)
-    event = {
-      type: req.body.type,
-      data: { object: req.body.data?.object || req.body },
-      id: req.body.id,
-    };
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   // Handle the event
