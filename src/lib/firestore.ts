@@ -952,4 +952,18 @@ export const unverifyBar = async (barId: string) => {
     console.error('Error unverifying bar:', error);
     throw error;
   }
+};
+
+// Get user by ID
+export const getUserById = async (userId: string) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (userDoc.exists()) {
+      return { id: userDoc.id, ...userDoc.data() };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    throw error;
+  }
 }; 

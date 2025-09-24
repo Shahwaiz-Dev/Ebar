@@ -15,10 +15,10 @@ import {
   getBeachBars, 
   verifyBar, 
   unverifyBar, 
-  BeachBar 
+  BeachBar,
+  getUserById
 } from '@/lib/firestore';
 import { useEmailService } from '@/hooks/useEmailService';
-import { getUserById } from '@/lib/firestore';
 
 export const AdminPanel = () => {
   const { currentUser } = useAuth();
