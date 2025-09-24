@@ -40,6 +40,7 @@ export const BarDetailsPage = () => {
   const { currentUser } = useAuth();
   const { data: bar, isLoading, error } = useBeachBar(barId || '');
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByBar(barId || '');
+  
   const [isFavoriteBar, setIsFavoriteBar] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedImage, setSelectedImage] = useState(0);
@@ -416,7 +417,7 @@ export const BarDetailsPage = () => {
                                 <h4 className="font-semibold">{review.user?.firstName ? `${review.user.firstName} ${review.user.lastName}` : review.user?.displayName || review.userId || 'Anonymous User'}</h4>
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {new Date(review.createdAt?.toDate ? review.createdAt.toDate() : review.createdAt instanceof Date ? review.createdAt : new Date(review.createdAt)).toLocaleDateString()}
+                                {review.createdAt?.toDate ? review.createdAt.toDate().toLocaleDateString() : new Date().toLocaleDateString()}
                               </div>
                             </div>
                             <div className="flex items-center justify-between mb-3">
