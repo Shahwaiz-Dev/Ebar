@@ -49,8 +49,6 @@ export default async function handler(req, res) {
       automatic_payment_methods: {
         enabled: true,
       },
-    }, {
-      stripeAccount: connectAccountId, // Use Connect account context
     });
 
     res.status(200).json({
