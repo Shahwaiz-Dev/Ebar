@@ -17,11 +17,14 @@ import {
   unverifyBar, 
   BeachBar 
 } from '@/lib/firestore';
+import { useEmailService } from '@/hooks/useEmailService';
+import { getUserById } from '@/lib/firestore';
 
 export const AdminPanel = () => {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { sendBarVerificationEmail } = useEmailService();
   const [selectedBar, setSelectedBar] = useState<BeachBar | null>(null);
 
   // Check if user is admin
@@ -54,11 +57,34 @@ export const AdminPanel = () => {
 
   // Verify bar mutation
   const verifyBarMutation = useMutation({
-    mutationFn: (barId: string) => verifyBar(barId, currentUser!.uid),
+    mutationFn: async (barId: string) => {
+      await verifyBar(barId, currentUser!.uid);
+      
+      // Find the bar to get owner details
+      const bar = allBars.find(b => b.id === barId);
+      if (bar && bar.ownerId) {
+        try {
+          const owner = await getUserById(bar.ownerId);
+          if (owner) {
+            await sendBarVerificationEmail({
+              firstName: owner.firstName,
+              lastName: owner.lastName,
+              email: owner.email,
+              barName: bar.name,
+              barLocation: bar.location,
+              isApproved: true
+            });
+          }
+        } catch (emailError) {
+          console.error('Error sending verification email:', emailError);
+          // Don't fail the verification if email fails
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin'] });
       queryClient.invalidateQueries({ queryKey: ['beachBars'] });
-      toast.success('Bar verified successfully!');
+      toast.success('Bar verified successfully! Email notification sent to owner.');
       setSelectedBar(null);
     },
     onError: (error) => {
@@ -69,11 +95,35 @@ export const AdminPanel = () => {
 
   // Unverify bar mutation
   const unverifyBarMutation = useMutation({
-    mutationFn: unverifyBar,
+    mutationFn: async (barId: string) => {
+      await unverifyBar(barId);
+      
+      // Find the bar to get owner details
+      const bar = allBars.find(b => b.id === barId);
+      if (bar && bar.ownerId) {
+        try {
+          const owner = await getUserById(bar.ownerId);
+          if (owner) {
+            await sendBarVerificationEmail({
+              firstName: owner.firstName,
+              lastName: owner.lastName,
+              email: owner.email,
+              barName: bar.name,
+              barLocation: bar.location,
+              isApproved: false,
+              rejectionReason: 'Your bar has been unverified and needs to be reviewed again. Please check your bar information and ensure all details are accurate.'
+            });
+          }
+        } catch (emailError) {
+          console.error('Error sending rejection email:', emailError);
+          // Don't fail the unverification if email fails
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin'] });
       queryClient.invalidateQueries({ queryKey: ['beachBars'] });
-      toast.success('Bar verification removed successfully!');
+      toast.success('Bar verification removed successfully! Email notification sent to owner.');
       setSelectedBar(null);
     },
     onError: (error) => {
@@ -96,6 +146,24 @@ export const AdminPanel = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
+  // Test email function
+  const testVerificationEmail = async () => {
+    try {
+      await sendBarVerificationEmail({
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'shahwaizn933@gmail.com', // Your email for testing
+        barName: 'Test Beach Bar',
+        barLocation: 'Test Location',
+        isApproved: true
+      });
+      toast.success('Test verification email sent!');
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      toast.error('Failed to send test email');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -106,14 +174,24 @@ export const AdminPanel = () => {
               Manage bar verifications and oversee platform content
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2"
-          >
-            <Home className="h-4 w-4" />
-            Back to Website
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={testVerificationEmail}
+              className="flex items-center gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              Test Email
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <Home className="h-4 w-4" />
+              Back to Website
+            </Button>
+          </div>
         </div>
       </div>
 
