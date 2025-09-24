@@ -79,7 +79,7 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
       };
 
       await createBeachBarMutation.mutateAsync(barData);
-      toast.success('Beach bar added successfully!');
+      toast.success('Beach bar submitted for verification! You will receive an email notification once verified (1-2 business days).');
       onAdd(barData);
       onClose();
       
@@ -245,6 +245,25 @@ export const AddBarModal = ({ isOpen, onClose, onAdd }: AddBarModalProps) => {
             </div>
           </div>
 
+          {/* Verification Notice */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                  Verification Process
+                </h4>
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Your beach bar will be reviewed by our team and verified within <strong>1-2 business days</strong>. 
+                  You will receive an email notification once your bar is approved and live on the platform.
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4">

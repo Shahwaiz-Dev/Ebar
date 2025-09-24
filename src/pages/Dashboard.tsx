@@ -300,9 +300,25 @@ export const DashboardPage = () => {
                       onClick={() => setSelectedBar(bar)}
                     >
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-sm">{bar.name}</h3>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-sm">{bar.name}</h3>
+                            {bar.isVerified ? (
+                              <Badge variant="default" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                ✓ Verified
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                ⏳ Pending
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">{bar.location}</p>
+                          {!bar.isVerified && (
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                              Verification in progress (1-2 days)
+                            </p>
+                          )}
                         </div>
                         <Button
                           variant="ghost"

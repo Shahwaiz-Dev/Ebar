@@ -267,6 +267,118 @@ export const deleteBeachBar = async (id: string) => {
   }
 };
 
+export const deleteAllBarsByOwner = async (ownerId: string) => {
+  try {
+    // Get all bars owned by this user
+    const bars = await getBeachBarsByOwner(ownerId);
+    
+    // Delete each bar
+    const deletePromises = bars.map(bar => {
+      if (bar.id) {
+        return deleteBeachBar(bar.id);
+      }
+      return Promise.resolve();
+    });
+    
+    await Promise.all(deletePromises);
+    
+    console.log(`Deleted ${bars.length} bars owned by user ${ownerId}`);
+    return bars.length;
+  } catch (error) {
+    console.error('Error deleting bars by owner:', error);
+    throw error;
+  }
+};
+
+export const deleteAllUserData = async (userId: string) => {
+  try {
+    const results = {
+      bars: 0,
+      bookings: 0,
+      orders: 0,
+      reviews: 0,
+      favorites: 0,
+    };
+
+    // Delete all bars owned by user (if they're an owner)
+    try {
+      results.bars = await deleteAllBarsByOwner(userId);
+    } catch (error) {
+      console.error('Error deleting user bars:', error);
+    }
+
+    // Delete all bookings by user
+    try {
+      const bookings = await getBookingsByUser(userId);
+      const bookingDeletePromises = bookings.map(booking => {
+        if (booking.id) {
+          return deleteDoc(doc(db, 'bookings', booking.id));
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(bookingDeletePromises);
+      results.bookings = bookings.length;
+      console.log(`Deleted ${bookings.length} bookings for user ${userId}`);
+    } catch (error) {
+      console.error('Error deleting user bookings:', error);
+    }
+
+    // Delete all orders by user
+    try {
+      const orders = await getOrdersByUser(userId);
+      const orderDeletePromises = orders.map(order => {
+        if (order.id) {
+          return deleteDoc(doc(db, 'orders', order.id));
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(orderDeletePromises);
+      results.orders = orders.length;
+      console.log(`Deleted ${orders.length} orders for user ${userId}`);
+    } catch (error) {
+      console.error('Error deleting user orders:', error);
+    }
+
+    // Delete all reviews by user
+    try {
+      const reviews = await getReviewsByUser(userId);
+      const reviewDeletePromises = reviews.map(review => {
+        if (review.id) {
+          return deleteDoc(doc(db, 'reviews', review.id));
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(reviewDeletePromises);
+      results.reviews = reviews.length;
+      console.log(`Deleted ${reviews.length} reviews for user ${userId}`);
+    } catch (error) {
+      console.error('Error deleting user reviews:', error);
+    }
+
+    // Delete all favorites by user
+    try {
+      const favorites = await getFavoritesByUser(userId);
+      const favoriteDeletePromises = favorites.map(favorite => {
+        if (favorite.id) {
+          return deleteDoc(doc(db, 'favorites', favorite.id));
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(favoriteDeletePromises);
+      results.favorites = favorites.length;
+      console.log(`Deleted ${favorites.length} favorites for user ${userId}`);
+    } catch (error) {
+      console.error('Error deleting user favorites:', error);
+    }
+
+    console.log(`User data deletion summary for ${userId}:`, results);
+    return results;
+  } catch (error) {
+    console.error('Error deleting all user data:', error);
+    throw error;
+  }
+};
+
 // Bookings Collection
 export const bookingsCollection = collection(db, 'bookings');
 
@@ -502,6 +614,24 @@ export const getReviewsByBar = async (barId: string) => {
     return reviewsWithUsers;
   } catch (error) {
     console.error('Error getting reviews by bar:', error);
+    throw error;
+  }
+};
+
+export const getReviewsByUser = async (userId: string) => {
+  try {
+    const q = query(
+      reviewsCollection,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Review[];
+  } catch (error) {
+    console.error('Error getting reviews by user:', error);
     throw error;
   }
 };

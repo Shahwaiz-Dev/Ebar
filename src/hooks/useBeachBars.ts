@@ -60,7 +60,7 @@ export const useCreateBeachBar = () => {
       queryClient.invalidateQueries({ queryKey: beachBarKeys.lists() });
       queryClient.invalidateQueries({ queryKey: beachBarKeys.owner(variables.ownerId) });
       
-      toast.success('Beach bar created successfully!');
+      toast.success('Beach bar submitted for verification! You will receive an email notification once verified (1-2 business days).');
     },
     onError: (error) => {
       console.error('Error creating beach bar:', error);

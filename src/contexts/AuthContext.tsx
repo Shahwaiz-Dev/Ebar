@@ -14,6 +14,7 @@ import {
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { useEmailService } from '@/hooks/useEmailService';
+import { deleteAllUserData } from '@/lib/firestore';
 
 export interface AuthUser {
   uid: string;
@@ -61,13 +62,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Get additional user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data() as AuthUser;
-          setCurrentUser(userData);
-        } else {
-          // Handle case where user exists in Auth but not in Firestore
+        try {
+          // Get additional user data from Firestore
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as AuthUser;
+            console.log('User data loaded:', userData);
+            setCurrentUser(userData);
+          } else {
+            // Handle case where user exists in Auth but not in Firestore
+            console.warn('User exists in Auth but not in Firestore:', user.uid);
+            setCurrentUser(null);
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
           setCurrentUser(null);
         }
       } else {
@@ -221,6 +229,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } catch (error) {
         console.error('Failed to send account deletion email:', error);
         // Continue with deletion even if email fails
+      }
+
+      // Delete all user-related data (bars, bookings, orders, reviews, favorites)
+      try {
+        const deletionResults = await deleteAllUserData(currentUser.uid);
+        console.log(`User data deletion completed for ${currentUser.uid}:`, deletionResults);
+      } catch (error) {
+        console.error('Error deleting user data:', error);
+        // Continue with account deletion even if data deletion fails
       }
 
       // Delete user document from Firestore

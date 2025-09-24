@@ -40,6 +40,16 @@ export interface AccountDeletionEmailData {
   deletionDate: string;
 }
 
+export interface BarVerificationEmailData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  barName: string;
+  barLocation: string;
+  isApproved: boolean;
+  rejectionReason?: string;
+}
+
 // Email templates
 const getWelcomeEmailTemplate = (data: WelcomeEmailData) => {
   return `
@@ -194,6 +204,88 @@ const getAccountDeletionTemplate = (data: AccountDeletionEmailData) => {
   `;
 };
 
+const getBarVerificationTemplate = (data: BarVerificationEmailData) => {
+  if (data.isApproved) {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bar Verified - BeachVibe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #16a34a;">🎉 Bar Verified!</h1>
+    </div>
+    
+    <div style="background: #f0fdf4; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #16a34a; margin-top: 0;">Congratulations ${data.firstName}!</h2>
+        <p>Your beach bar "<strong>${data.barName}</strong>" in ${data.barLocation} has been successfully verified and is now live on BeachVibe!</p>
+    </div>
+    
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+        <h3 style="color: #16a34a; margin-top: 0;">What's Next?</h3>
+        <ul style="line-height: 1.6;">
+            <li>Your bar is now visible to customers on our platform</li>
+            <li>Customers can start making bookings and orders</li>
+            <li>You can manage your bar settings in your dashboard</li>
+            <li>Set up Stripe Connect for payment processing</li>
+        </ul>
+    </div>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="https://yourdomain.com/dashboard" style="background-color: #16a34a; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Manage Your Bar</a>
+    </div>
+    
+    <div style="text-align: center; color: #666; font-size: 14px;">
+        <p>Thank you for joining BeachVibe!</p>
+        <p>Questions? Contact us at support@beachvibe.com</p>
+    </div>
+</body>
+</html>
+    `;
+  } else {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bar Verification Update - BeachVibe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #dc2626;">Bar Verification Update</h1>
+    </div>
+    
+    <div style="background: #fef2f2; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #dc2626; margin-top: 0;">Hello ${data.firstName}</h2>
+        <p>We've reviewed your beach bar "<strong>${data.barName}</strong>" in ${data.barLocation} and need some additional information before we can approve it.</p>
+    </div>
+    
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+        <h3 style="color: #dc2626; margin-top: 0;">Required Changes:</h3>
+        <p style="line-height: 1.6;">${data.rejectionReason || 'Please review your bar information and ensure all details are accurate and complete.'}</p>
+    </div>
+    
+    <div style="background: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <p style="margin: 0; color: #1e40af;"><strong>Next Steps:</strong> Please update your bar information and resubmit for verification.</p>
+    </div>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="https://yourdomain.com/dashboard" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Update Bar Information</a>
+    </div>
+    
+    <div style="text-align: center; color: #666; font-size: 14px;">
+        <p>Questions? Contact us at support@beachvibe.com</p>
+    </div>
+</body>
+</html>
+    `;
+  }
+};
+
 class EmailService {
   private fromEmail: string;
   private fromName: string;
@@ -259,6 +351,30 @@ class EmailService {
       return true;
     } catch (error) {
       console.error('Error sending account deletion email:', error);
+      return false;
+    }
+  }
+
+  async sendBarVerificationEmail(data: BarVerificationEmailData): Promise<boolean> {
+    try {
+      const transporter = createTransporter();
+      
+      const subject = data.isApproved 
+        ? `🎉 Your bar "${data.barName}" has been verified!`
+        : `Bar verification update for "${data.barName}"`;
+      
+      const mailOptions = {
+        from: `${this.fromName} <${this.fromEmail}>`,
+        to: `${data.firstName} ${data.lastName} <${data.email}>`,
+        subject: subject,
+        html: getBarVerificationTemplate(data),
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`Bar verification email sent successfully to ${data.email}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending bar verification email:', error);
       return false;
     }
   }

@@ -28,6 +28,16 @@ export interface AccountDeletionEmailData {
   deletionDate: string;
 }
 
+export interface BarVerificationEmailData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  barName: string;
+  barLocation: string;
+  isApproved: boolean;
+  rejectionReason?: string;
+}
+
 export const useEmailService = () => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -71,11 +81,16 @@ export const useEmailService = () => {
     return sendEmail('account_deletion', data);
   };
 
+  const sendBarVerificationEmail = async (data: BarVerificationEmailData): Promise<boolean> => {
+    return sendEmail('bar_verification', data);
+  };
+
   return {
     isLoading,
     sendWelcomeEmail,
     sendBookingConfirmationEmail,
     sendAccountDeletionEmail,
+    sendBarVerificationEmail,
     sendEmail,
   };
 };
