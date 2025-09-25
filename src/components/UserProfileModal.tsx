@@ -28,6 +28,7 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
   });
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +48,7 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
   };
 
   const handleDeleteAccount = async () => {
+    setIsDeleting(true);
     try {
       await deleteAccount(deletePassword);
       toast.success('Account deleted successfully');
@@ -62,6 +64,8 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
       } else {
         toast.error('Failed to delete account. Please try again.');
       }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -71,8 +75,10 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
   };
 
   const handleCancelDelete = () => {
-    setShowDeleteConfirmation(false);
-    setDeletePassword('');
+    if (!isDeleting) {
+      setShowDeleteConfirmation(false);
+      setDeletePassword('');
+    }
   };
 
   return (
@@ -178,18 +184,28 @@ export const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfil
                       onChange={(e) => setDeletePassword(e.target.value)}
                       placeholder="Enter your password"
                       className="w-full"
+                      disabled={isDeleting}
                     />
                   </div>
                 </div>
                 
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel onClick={handleCancelDelete} disabled={isDeleting}>
+                    Cancel
+                  </AlertDialogCancel>
                   <AlertDialogAction 
                     onClick={handleDeleteAccount} 
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    disabled={!deletePassword.trim()}
+                    disabled={!deletePassword.trim() || isDeleting}
                   >
-                    Delete Account
+                    {isDeleting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Deleting Account...
+                      </>
+                    ) : (
+                      'Delete Account'
+                    )}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
