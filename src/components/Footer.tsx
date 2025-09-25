@@ -1,5 +1,4 @@
-import { Waves, Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Waves, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CookiePreferencesManager from './CookiePreferencesManager';
 
@@ -9,68 +8,29 @@ export const Footer = () => {
   const footerLinks = {
     Company: [
       { label: 'About Us', href: '/contact' },
-      { label: 'Careers', href: 'https://careers.beachvibe.com' },
-      { label: 'Press', href: 'https://press.beachvibe.com' },
-      { label: 'News', href: 'https://blog.beachvibe.com' },
-      { label: 'Partnerships', href: '/contact' },
-    ],
-    Support: [
-      { label: 'Help Center', href: 'https://help.beachvibe.com' },
       { label: 'Contact Us', href: '/contact' },
-      { label: 'Safety', href: 'https://safety.beachvibe.com' },
-      { label: 'Cancellation', href: 'https://help.beachvibe.com/cancellation' },
-      { label: 'Trust & Safety', href: 'https://trust.beachvibe.com' },
+    ],
+    'For Users': [
+      { label: 'Search Bars', href: '/search' },
+      { label: 'Favorites', href: '/favorites' },
+      { label: 'Booking History', href: '/booking-history' },
     ],
     'For Bars': [
       { label: 'List Your Bar', href: '/dashboard' },
-      { label: 'Bar Resources', href: 'https://resources.beachvibe.com' },
-      { label: 'Community', href: 'https://community.beachvibe.com' },
-      { label: 'Marketing', href: 'https://marketing.beachvibe.com' },
-      { label: 'Analytics', href: '/dashboard' },
+      { label: 'Bar Dashboard', href: '/dashboard' },
     ],
     Legal: [
-      { label: 'Privacy Policy', href: 'https://privacy.beachvibe.com' },
       { label: 'Terms of Service', href: '/terms' },
       { label: 'Cookie Policy', href: '/cookie-policy' },
-      { label: 'Accessibility', href: 'https://accessibility.beachvibe.com' },
-      { label: 'Sitemap', href: 'https://sitemap.beachvibe.com' },
     ],
   };
 
   const socialLinks = [
-    { icon: Facebook, href: 'https://facebook.com/beachvibe', label: 'Facebook' },
-    { icon: Instagram, href: 'https://instagram.com/beachvibe', label: 'Instagram' },
-    { icon: Twitter, href: 'https://twitter.com/beachvibe', label: 'Twitter' },
-    { icon: Youtube, href: 'https://youtube.com/@beachvibe', label: 'YouTube' },
+    // Only add real social media links when they exist
   ];
 
   return (
     <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      {/* Newsletter Section */}
-      <div className="border-b border-white/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-4xl mx-auto text-center">
-            <h3 className="text-2xl lg:text-3xl font-playfair font-bold mb-4">
-              Stay in the Loop
-            </h3>
-            <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              Get the latest beach bar openings, exclusive deals, and travel inspiration 
-              delivered to your inbox.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="flex-1 px-6 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-primary backdrop-blur-md"
-              />
-              <Button variant="sunset" size="lg">
-                Subscribe
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 lg:gap-12">
@@ -91,35 +51,27 @@ export const Footer = () => {
             <div className="space-y-3 mb-6">
               <div className="flex items-center text-white/80">
                 <Mail className="h-4 w-4 mr-3 text-primary" />
-                <a href="mailto:hello@beachvibe.com" className="hover:text-white transition-smooth">
-                  hello@beachvibe.com
-                </a>
-              </div>
-              <div className="flex items-center text-white/80">
-                <Phone className="h-4 w-4 mr-3 text-primary" />
-                <a href="tel:+15551234567" className="hover:text-white transition-smooth">
-                  +1 (555) 123-4567
-                </a>
-              </div>
-              <div className="flex items-center text-white/80">
-                <MapPin className="h-4 w-4 mr-3 text-primary" />
-                Miami Beach, FL
+                <Link to="/contact" className="hover:text-white transition-smooth">
+                  Contact Us
+                </Link>
               </div>
             </div>
 
             {/* Social Links */}
-            <div className="flex space-x-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  className="w-10 h-10 bg-white/10 hover:bg-primary rounded-xl flex items-center justify-center transition-smooth group"
-                  aria-label={social.label}
-                >
-                  <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                </a>
-              ))}
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="flex space-x-4">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    className="w-10 h-10 bg-white/10 hover:bg-primary rounded-xl flex items-center justify-center transition-smooth group"
+                    aria-label={social.label}
+                  >
+                    <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Links Sections */}

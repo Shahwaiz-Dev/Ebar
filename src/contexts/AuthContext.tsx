@@ -33,7 +33,7 @@ export interface AuthUser {
 interface AuthContextType {
   currentUser: AuthUser | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName: string, lastName: string, type: 'user' | 'owner' | 'admin') => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, type: 'user' | 'owner' | 'admin', phone?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -94,7 +94,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     password: string, 
     firstName: string, 
     lastName: string, 
-    type: 'user' | 'owner' | 'admin'
+    type: 'user' | 'owner' | 'admin',
+    phone?: string
   ) => {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -111,6 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         firstName,
         lastName,
         type,
+        ...(phone && { phone }),
       };
 
       await setDoc(doc(db, 'users', user.uid), {
@@ -119,7 +121,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         updatedAt: new Date(),
       });
 
-      setCurrentUser(userData);
+      // Don't set currentUser immediately - let the auth state listener handle it
+      // This prevents timing issues with subsequent updateUserProfile calls
 
       // Send welcome email
       try {

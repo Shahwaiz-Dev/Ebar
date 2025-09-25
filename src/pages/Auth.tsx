@@ -38,7 +38,7 @@ interface AuthFormData {
 
 export const AuthPage = () => {
   const navigate = useNavigate();
-  const { signUp, signIn, updateUserProfile, resetPassword } = useAuth();
+  const { signUp, signIn, logout, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
@@ -81,25 +81,16 @@ export const AuthPage = () => {
           formData.password,
           formData.firstName,
           formData.lastName,
-          'user'
+          'user',
+          formData.phone || undefined
         );
         
-        // If there's additional profile data, update it
-        const additionalData: Partial<AuthUser> = {};
-        
-        if (formData.phone) {
-          additionalData.phone = formData.phone;
-        }
-        
-        
-        // Only update if there's data to update
-        if (Object.keys(additionalData).length > 0) {
-          await updateUserProfile(additionalData);
-        }
+        // Log out the user so they need to log in again
+        await logout();
         
         toast({
           title: "Account created successfully!",
-          description: "Welcome to BeachVibe!",
+          description: "Please log in with your new account.",
         });
       } else {
         await signIn(formData.email, formData.password);
@@ -111,8 +102,16 @@ export const AuthPage = () => {
       
       // Redirect based on action
       if (activeTab === 'signup') {
-        // After signup, send user to the login page
-        navigate('/auth?tab=login');
+        // After signup, switch to login tab and clear form
+        setActiveTab('login');
+        setFormData({
+          email: formData.email, // Keep email for convenience
+          password: '',
+          confirmPassword: '',
+          firstName: '',
+          lastName: '',
+          phone: '',
+        });
       } else {
         // After login, go to home
         navigate('/');
