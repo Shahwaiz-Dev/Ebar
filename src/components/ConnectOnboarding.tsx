@@ -28,6 +28,12 @@ interface ConnectAccount {
     currently_due?: string[];
     eventually_due?: string[];
   };
+  // Enhanced debug properties
+  currentlyDue?: string[];
+  pastDue?: string[];
+  pendingVerification?: string[];
+  eventuallyDue?: string[];
+  disabled_reason?: string;
 }
 
 interface ConnectOnboardingProps {
@@ -149,6 +155,36 @@ export const ConnectOnboarding = ({
       toast.error('Failed to refresh account status');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const debugAccount = async () => {
+    if (!account?.accountId) return;
+    
+    try {
+      const response = await fetch(`/api/debug-connect-account?accountId=${account.accountId}`);
+      const debugData = await response.json();
+      
+      console.group('🔍 STRIPE CONNECT ACCOUNT DEBUG REPORT');
+      console.log('📊 Account Analysis:', debugData.analysis);
+      console.log('⚠️ Recommendations:', debugData.recommendations);
+      console.log('🔧 Raw Requirements:', debugData.debug_info);
+      console.groupEnd();
+      
+      // Show recommendations in a toast
+      if (debugData.recommendations?.length > 0) {
+        const urgentItems = debugData.recommendations.filter(r => r.priority === 'URGENT');
+        if (urgentItems.length > 0) {
+          toast.error(`URGENT: ${urgentItems[0].issue} - Check console for details`);
+        } else {
+          toast.info('Debug report generated - Check browser console for detailed analysis');
+        }
+      } else {
+        toast.success('No immediate issues found - Check console for full report');
+      }
+    } catch (error) {
+      console.error('Error debugging account:', error);
+      toast.error('Failed to generate debug report');
     }
   };
 
@@ -329,15 +365,24 @@ export const ConnectOnboarding = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Account Status</h3>
-                <Button
-                  onClick={refreshAccountStatus}
-                  variant="outline"
-                  size="sm"
-                  disabled={isLoading}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={debugAccount}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    🔍 Debug
+                  </Button>
+                  <Button
+                    onClick={refreshAccountStatus}
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
