@@ -42,7 +42,7 @@ export const ConnectSuccessPage = () => {
   const checkAccountStatus = async (accountId: string) => {
     setIsCheckingStatus(true);
     try {
-      const response = await fetch(`/api/get-connect-account?accountId=${accountId}`);
+      const response = await fetch(`/api/connect?action=get-account&accountId=${accountId}`);
       const data = await response.json();
 
       if (data.error) {

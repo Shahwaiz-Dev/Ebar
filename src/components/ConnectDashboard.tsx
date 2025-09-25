@@ -44,7 +44,7 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
       setIsOpeningDashboard(true);
       
       // Create a login link for the Stripe Connect Express account
-      const response = await fetch('/api/get-connect-login-link', {
+      const response = await fetch('/api/connect?action=create-login-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
