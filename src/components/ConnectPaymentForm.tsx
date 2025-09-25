@@ -90,12 +90,13 @@ const ConnectPaymentFormComponent = ({
   const createConnectPaymentIntent = async () => {
     try {
       console.log('Creating Connect payment intent for amount:', amount);
-      const response = await fetch('/api/create-connect-payment-intent', {
+      const response = await fetch('/api/payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          type: 'connect',
           amount,
           currency: 'usd',
           barId,

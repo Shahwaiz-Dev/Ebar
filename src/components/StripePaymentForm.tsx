@@ -73,12 +73,13 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
   const createPaymentIntent = async () => {
     try {
       console.log('Creating payment intent for amount:', amount);
-      const response = await fetch('/api/create-payment-intent', {
+      const response = await fetch('/api/payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          type: 'standard',
           amount,
           currency: 'usd',
           metadata: {
