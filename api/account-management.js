@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../src/lib/firebase';
+import { db } from './firebase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2024-12-18.acacia',
