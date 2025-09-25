@@ -133,12 +133,16 @@ export const useDisconnectStripeAccount = () => {
   return useMutation({
     mutationFn: async ({ barId, accountId }: { barId: string; accountId: string }) => {
       // Call the disconnect API
-      const response = await fetch('/api/disconnect-stripe-account', {
+      const response = await fetch('/api/account-management', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ accountId, barId }),
+        body: JSON.stringify({ 
+          action: 'disconnect-single',
+          accountId, 
+          barId 
+        }),
       });
 
       const result = await response.json();

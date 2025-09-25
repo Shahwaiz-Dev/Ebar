@@ -28,7 +28,7 @@ const CookiePreferencesManager: React.FC = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="secondary" size="sm" className="gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20">
           <Cookie className="w-4 h-4" />
           Cookie Preferences
         </Button>
