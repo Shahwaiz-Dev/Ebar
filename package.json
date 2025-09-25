@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "setup:stripe": "node scripts/setup-stripe-products.js"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.10",

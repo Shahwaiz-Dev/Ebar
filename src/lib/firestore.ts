@@ -136,6 +136,86 @@ export interface Favorite {
   createdAt: Timestamp;
 }
 
+// Subscription Types
+export type SubscriptionTier = 'starter' | 'professional' | 'premium';
+
+export interface SubscriptionPlan {
+  id: SubscriptionTier;
+  name: string;
+  price: number; // Price in euros
+  currency: 'EUR';
+  bookingLimit: number;
+  features: string[];
+  stripeProductId?: string;
+  stripePriceId?: string;
+}
+
+export interface UserSubscription {
+  id?: string;
+  userId: string;
+  tier: SubscriptionTier;
+  status: 'active' | 'inactive' | 'cancelled' | 'past_due';
+  stripeSubscriptionId?: string;
+  stripeCustomerId?: string;
+  currentPeriodStart: Timestamp;
+  currentPeriodEnd: Timestamp;
+  bookingsUsed: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Subscription Plans Configuration
+export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 5.99,
+    currency: 'EUR',
+    bookingLimit: 100,
+    features: [
+      'Up to 100 bookings/month',
+      'Basic analytics',
+      'QR codes',
+      'Basic menu management',
+      'Email support'
+    ]
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
+    price: 7.99,
+    currency: 'EUR',
+    bookingLimit: 300,
+    features: [
+      'Up to 300 bookings/month',
+      'Advanced analytics',
+      'QR codes',
+      'Full menu management',
+      'Customer management',
+      'Priority email support'
+    ]
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    price: 10.99,
+    currency: 'EUR',
+    bookingLimit: 700,
+    features: [
+      'Up to 700 bookings/month',
+      'Premium analytics & reports',
+      'QR codes',
+      'Advanced menu management',
+      'Customer management',
+      'Payment management',
+      'Priority support'
+    ]
+  }
+];
+
+// Subscription Collections
+export const subscriptionsCollection = collection(db, 'subscriptions');
+
 // Beach Bars Collection
 export const beachBarsCollection = collection(db, 'beachBars');
 
@@ -408,16 +488,145 @@ export const deleteAllUserData = async (userId: string) => {
   }
 };
 
+// Subscription Functions
+export const getUserSubscription = async (userId: string): Promise<UserSubscription | null> => {
+  try {
+    const q = query(subscriptionsCollection, where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return null;
+    }
+    
+    const doc = querySnapshot.docs[0];
+    return {
+      id: doc.id,
+      ...doc.data()
+    } as UserSubscription;
+  } catch (error) {
+    console.error('Error getting user subscription:', error);
+    throw error;
+  }
+};
+
+export const createUserSubscription = async (subscriptionData: Omit<UserSubscription, 'id' | 'createdAt' | 'updatedAt'>) => {
+  try {
+    const docRef = await addDoc(subscriptionsCollection, {
+      ...subscriptionData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return { id: docRef.id, ...subscriptionData };
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    throw error;
+  }
+};
+
+export const updateUserSubscription = async (id: string, updates: Partial<UserSubscription>) => {
+  try {
+    const docRef = doc(db, 'subscriptions', id);
+    await updateDoc(docRef, {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error updating subscription:', error);
+    throw error;
+  }
+};
+
+export const incrementBookingCount = async (userId: string) => {
+  try {
+    const subscription = await getUserSubscription(userId);
+    if (subscription && subscription.id) {
+      await updateUserSubscription(subscription.id, {
+        bookingsUsed: subscription.bookingsUsed + 1
+      });
+    }
+  } catch (error) {
+    console.error('Error incrementing booking count:', error);
+    throw error;
+  }
+};
+
+export const checkBookingLimit = async (userId: string): Promise<{ canBook: boolean; currentUsage: number; limit: number; tier: SubscriptionTier | null }> => {
+  try {
+    const subscription = await getUserSubscription(userId);
+    
+    if (!subscription) {
+      // No subscription - default to starter plan limits
+      return {
+        canBook: false,
+        currentUsage: 0,
+        limit: SUBSCRIPTION_PLANS[0].bookingLimit,
+        tier: null
+      };
+    }
+    
+    const plan = SUBSCRIPTION_PLANS.find(p => p.id === subscription.tier);
+    if (!plan) {
+      throw new Error('Invalid subscription tier');
+    }
+    
+    return {
+      canBook: subscription.bookingsUsed < plan.bookingLimit,
+      currentUsage: subscription.bookingsUsed,
+      limit: plan.bookingLimit,
+      tier: subscription.tier
+    };
+  } catch (error) {
+    console.error('Error checking booking limit:', error);
+    throw error;
+  }
+};
+
+export const getSubscriptionPlanFeatures = (tier: SubscriptionTier | null): string[] => {
+  if (!tier) return [];
+  const plan = SUBSCRIPTION_PLANS.find(p => p.id === tier);
+  return plan?.features || [];
+};
+
+export const hasFeatureAccess = (userTier: SubscriptionTier | null, requiredTier: SubscriptionTier): boolean => {
+  if (!userTier) return false;
+  
+  const tierOrder: SubscriptionTier[] = ['starter', 'professional', 'premium'];
+  const userTierIndex = tierOrder.indexOf(userTier);
+  const requiredTierIndex = tierOrder.indexOf(requiredTier);
+  
+  return userTierIndex >= requiredTierIndex;
+};
+
 // Bookings Collection
 export const bookingsCollection = collection(db, 'bookings');
 
 export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt' | 'updatedAt'>) => {
   try {
+    // Check if the user (for the bar) has subscription limits
+    const barDoc = await getDoc(doc(db, 'beachBars', bookingData.barId));
+    if (barDoc.exists()) {
+      const barData = barDoc.data();
+      const barOwnerId = barData.ownerId;
+      
+      // Check booking limits for the bar owner
+      const limitCheck = await checkBookingLimit(barOwnerId);
+      if (!limitCheck.canBook) {
+        throw new Error(`Booking limit reached. You have used ${limitCheck.currentUsage}/${limitCheck.limit} bookings for this month. Please upgrade your subscription to continue.`);
+      }
+    }
+
     const docRef = await addDoc(bookingsCollection, {
       ...bookingData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    // Increment booking count for the bar owner
+    if (barDoc.exists()) {
+      const barData = barDoc.data();
+      await incrementBookingCount(barData.ownerId);
+    }
+
     return { id: docRef.id, ...bookingData };
   } catch (error) {
     console.error('Error creating booking:', error);

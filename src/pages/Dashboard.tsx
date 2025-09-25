@@ -20,7 +20,8 @@ import {
   MapPin,
   Phone,
   Mail,
-  LogOut
+  LogOut,
+  Lock
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -31,11 +32,13 @@ import { AddMenuItemModal } from '@/components/AddMenuItemModal';
 import { UserProfileModal } from '@/components/UserProfileModal';
 import { BookingManagement } from '@/components/BookingManagement';
 import { Analytics } from '@/components/Analytics';
+import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeachBarsByOwner, useDeleteBeachBar, useUpdateBeachBar } from '@/hooks/useBeachBars';
 import { useBookingsByBar } from '@/hooks/useBookings';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { useUserSubscription, useFeatureAccess } from '@/hooks/useSubscription';
 import { BeachBar } from '@/lib/firestore';
 import { createSampleBeachBars } from '@/lib/firestore';
 import { OrderManagement } from '@/components/OrderManagement';
@@ -60,6 +63,14 @@ export const DashboardPage = () => {
 
   // Fetch dashboard statistics
   const { data: stats, isLoading: statsLoading } = useDashboardStats(currentUser?.uid || '');
+
+  // Fetch subscription data
+  const { data: subscription } = useUserSubscription(currentUser?.uid);
+  
+  // Check feature access
+  const hasAdvancedAnalytics = useFeatureAccess(subscription?.tier, 'professional');
+  const hasPaymentManagement = useFeatureAccess(subscription?.tier, 'premium');
+  const hasCustomerManagement = useFeatureAccess(subscription?.tier, 'professional');
 
   useEffect(() => {
     // Check if user is authenticated
@@ -377,13 +388,20 @@ export const DashboardPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
                   <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+                  <TabsTrigger value="subscription" className="text-xs sm:text-sm">Subscription</TabsTrigger>
                   <TabsTrigger value="bookings" className="text-xs sm:text-sm">Bookings</TabsTrigger>
-                  <TabsTrigger value="analytics" className="text-xs sm:text-sm">Analytics</TabsTrigger>
+                  <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+                    Analytics
+                    {!hasAdvancedAnalytics && <Lock className="h-3 w-3 ml-1" />}
+                  </TabsTrigger>
                   <TabsTrigger value="qr-codes" className="text-xs sm:text-sm">QR Codes</TabsTrigger>
                   <TabsTrigger value="menu" className="text-xs sm:text-sm">Menu</TabsTrigger>
-                  <TabsTrigger value="payments" className="text-xs sm:text-sm">Payments</TabsTrigger>
+                  <TabsTrigger value="payments" className="text-xs sm:text-sm">
+                    Payments
+                    {!hasPaymentManagement && <Lock className="h-3 w-3 ml-1" />}
+                  </TabsTrigger>
                   <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
                 </TabsList>
 
@@ -489,6 +507,11 @@ export const DashboardPage = () => {
                   )}
                 </TabsContent>
 
+                {/* Subscription Tab */}
+                <TabsContent value="subscription" className="space-y-6">
+                  <SubscriptionManagement />
+                </TabsContent>
+
                 {/* Bookings & Orders Management */}
                 <TabsContent value="bookings" className="space-y-6">
                   {selectedBar ? (
@@ -505,7 +528,20 @@ export const DashboardPage = () => {
 
                 {/* Analytics Tab */}
                 <TabsContent value="analytics" className="space-y-6">
-                  {selectedBar ? (
+                  {!hasAdvancedAnalytics ? (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="font-semibold mb-2">Advanced Analytics Locked</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Upgrade to Professional or Premium plan to access detailed analytics and reports.
+                        </p>
+                        <Button onClick={() => setActiveTab('subscription')}>
+                          Upgrade Plan
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : selectedBar ? (
                     <Analytics barId={selectedBar.id!} />
                   ) : (
                     <div className="text-center py-8">
@@ -626,7 +662,20 @@ export const DashboardPage = () => {
 
                 {/* Payments Tab */}
                 <TabsContent value="payments" className="space-y-6">
-                  {selectedBar ? (
+                  {!hasPaymentManagement ? (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="font-semibold mb-2">Payment Management Locked</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Upgrade to Premium plan to access advanced payment management and Stripe Connect features.
+                        </p>
+                        <Button onClick={() => setActiveTab('subscription')}>
+                          Upgrade to Premium
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : selectedBar ? (
                     <div className="space-y-6">
                       {/* Connect Onboarding */}
                       <ConnectOnboarding
