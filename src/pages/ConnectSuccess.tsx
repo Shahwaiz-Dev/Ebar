@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -14,10 +15,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateBeachBarConnectAccount } from '@/lib/firestore';
+import { beachBarKeys } from '@/hooks/useBeachBars';
 
 export const ConnectSuccessPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [accountStatus, setAccountStatus] = useState<{
     accountId: string;
@@ -65,6 +68,9 @@ export const ConnectSuccessPage = () => {
           if (barId) {
             await updateBeachBarConnectAccount(barId, accountId, 'active');
             console.log('Updated bar Connect account status to active');
+            
+            // Invalidate all beach bar queries to ensure dashboard updates
+            queryClient.invalidateQueries({ queryKey: beachBarKeys.all });
           }
         } catch (error) {
           console.error('Error updating bar Connect account status:', error);
@@ -72,6 +78,16 @@ export const ConnectSuccessPage = () => {
         }
       } else if (data.detailsSubmitted) {
         toast.info('Account details submitted and under review');
+        
+        // Also invalidate cache for partial updates
+        try {
+          const barId = searchParams.get('barId') || localStorage.getItem('currentBarId');
+          if (barId) {
+            queryClient.invalidateQueries({ queryKey: beachBarKeys.all });
+          }
+        } catch (error) {
+          console.error('Error invalidating cache:', error);
+        }
       }
     } catch (error) {
       console.error('Error checking account status:', error);

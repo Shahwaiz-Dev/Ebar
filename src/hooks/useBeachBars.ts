@@ -92,6 +92,9 @@ export const useUpdateBeachBar = () => {
       // Invalidate lists to refetch
       queryClient.invalidateQueries({ queryKey: beachBarKeys.lists() });
       
+      // Invalidate owner queries to refetch - this ensures dashboard updates
+      queryClient.invalidateQueries({ queryKey: beachBarKeys.all });
+      
       toast.success('Beach bar updated successfully!');
     },
     onError: (error) => {

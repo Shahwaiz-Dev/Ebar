@@ -76,6 +76,16 @@ export const DashboardPage = () => {
     }
   }, [bars, selectedBar]);
 
+  // Update selected bar when bars data changes (e.g., after Connect account updates)
+  useEffect(() => {
+    if (selectedBar && bars.length > 0) {
+      const updatedSelectedBar = bars.find(bar => bar.id === selectedBar.id);
+      if (updatedSelectedBar && JSON.stringify(updatedSelectedBar) !== JSON.stringify(selectedBar)) {
+        setSelectedBar(updatedSelectedBar);
+      }
+    }
+  }, [bars, selectedBar]);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -138,8 +148,25 @@ export const DashboardPage = () => {
       await updateBeachBarConnectAccount(selectedBar.id!, accountId, 'pending');
       toast.success('Connect account created! Complete the onboarding process.');
       
-      // Refresh the bars data to show updated Connect status
-      window.location.reload();
+      // Update the selected bar state with the new Connect account info
+      const updatedBar = {
+        ...selectedBar,
+        connectAccountId: accountId,
+        connectAccountStatus: 'pending' as const,
+        paymentSetupComplete: false
+      };
+      setSelectedBar(updatedBar);
+      
+      // Use the mutation to properly invalidate cache and update the bar
+      updateBeachBarMutation.mutate({
+        id: selectedBar.id!,
+        updates: {
+          connectAccountId: accountId,
+          connectAccountStatus: 'pending',
+          paymentSetupComplete: false
+        }
+      });
+      
     } catch (error) {
       console.error('Error updating bar with Connect account:', error);
       toast.error('Failed to save Connect account information');
@@ -607,6 +634,7 @@ export const DashboardPage = () => {
                         barName={selectedBar.name}
                         barId={selectedBar.id!}
                         ownerEmail={currentUser.email || 'owner@example.com'}
+                        existingAccountId={selectedBar.connectAccountId}
                         onAccountCreated={handleConnectAccountCreated}
                       />
                       

@@ -35,6 +35,7 @@ interface ConnectOnboardingProps {
   barName: string;
   barId: string;
   ownerEmail: string;
+  existingAccountId?: string;
   onAccountCreated?: (accountId: string) => void;
 }
 
@@ -43,6 +44,7 @@ export const ConnectOnboarding = ({
   barName, 
   barId,
   ownerEmail,
+  existingAccountId,
   onAccountCreated 
 }: ConnectOnboardingProps) => {
   const [account, setAccount] = useState<ConnectAccount | null>(null);
@@ -131,12 +133,12 @@ export const ConnectOnboarding = ({
 
 
   useEffect(() => {
-    // Check if there's an existing account ID
-    const existingAccountId = localStorage.getItem('connectAccountId');
-    if (existingAccountId) {
-      checkAccountStatus(existingAccountId);
+    // Check if there's an existing account ID from props or localStorage
+    const accountId = existingAccountId || localStorage.getItem('connectAccountId');
+    if (accountId) {
+      checkAccountStatus(accountId);
     }
-  }, []);
+  }, [existingAccountId]);
 
   const getStatusBadge = () => {
     if (!account) return null;
