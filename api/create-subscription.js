@@ -22,16 +22,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 // Product and Price IDs for each subscription tier
 const SUBSCRIPTION_PRODUCTS = {
   starter: {
-    productId: 'prod_starter_beach_bar', // Replace with actual Stripe Product ID
-    priceId: 'price_starter_monthly', // Replace with actual Stripe Price ID
+    productId: 'prod_T7b4kcBFOXPvdb',
+    priceId: 'price_1SBLsREjcqDRtjRrS5WidTpa',
   },
   professional: {
-    productId: 'prod_professional_beach_bar',
-    priceId: 'price_professional_monthly',
+    productId: 'prod_T7b5AXDyrXCyX1',
+    priceId: 'price_1SBLtEEjcqDRtjRrZd7FIcEN',
   },
   premium: {
-    productId: 'prod_premium_beach_bar',
-    priceId: 'price_premium_monthly',
+    productId: 'prod_T7b5CkVUR1JZwD',
+    priceId: 'price_1SBLthEjcqDRtjRrE9rqNdq6',
   },
 };
 
