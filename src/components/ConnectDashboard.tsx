@@ -19,6 +19,7 @@ interface ConnectDashboardProps {
 
 export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboardProps) => {
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [isOpeningDashboard, setIsOpeningDashboard] = useState(false);
   const disconnectStripeAccountMutation = useDisconnectStripeAccount();
 
   const handleDisconnectAccount = async () => {
@@ -38,10 +39,35 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
     }
   };
 
-  const handleViewStripeDashboard = () => {
-    // Open Stripe Express Dashboard for the connected account
-    const stripeExpressUrl = `https://connect.stripe.com/express/${accountId}`;
-    window.open(stripeExpressUrl, '_blank');
+  const handleViewStripeDashboard = async () => {
+    try {
+      setIsOpeningDashboard(true);
+      
+      // Create a login link for the Stripe Connect Express account
+      const response = await fetch('/api/get-connect-login-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accountId }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create login link');
+      }
+
+      // Open the login link in a new tab
+      window.open(result.loginUrl, '_blank');
+      toast.success('Opening Stripe Connect dashboard...');
+      
+    } catch (error) {
+      console.error('Error opening Stripe dashboard:', error);
+      toast.error('Failed to open Stripe Connect dashboard');
+    } finally {
+      setIsOpeningDashboard(false);
+    }
   };
 
   return (
@@ -57,9 +83,10 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
             variant="outline" 
             size="sm"
             onClick={handleViewStripeDashboard}
+            disabled={isOpeningDashboard}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
-            Open Stripe Connect
+            {isOpeningDashboard ? 'Opening...' : 'Open Stripe Connect'}
           </Button>
           <Button 
             variant="destructive" 
@@ -128,17 +155,19 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
                   variant="default" 
                   onClick={handleViewStripeDashboard}
                   className="flex-1 sm:flex-none"
+                  disabled={isOpeningDashboard}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Open Stripe Connect Account
+                  {isOpeningDashboard ? 'Opening Dashboard...' : 'Open Stripe Connect Account'}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={handleViewStripeDashboard}
                   className="flex-1 sm:flex-none"
+                  disabled={isOpeningDashboard}
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
-                  View Payment Reports
+                  {isOpeningDashboard ? 'Opening Reports...' : 'View Payment Reports'}
                 </Button>
               </div>
             </div>
