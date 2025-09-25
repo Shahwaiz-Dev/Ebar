@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email, businessName, ownerId } = req.body;
+    const { email, businessName, ownerId, barId } = req.body;
 
     console.log('Creating Connect account with:', { email, businessName, ownerId });
 
@@ -48,10 +48,18 @@ export default async function handler(req, res) {
 
     // Create account link for onboarding
     console.log('Creating account link...');
+    const returnUrl = barId 
+      ? `${process.env.FRONTEND_URL}/dashboard/connect/success?account=${account.id}&barId=${barId}`
+      : `${process.env.FRONTEND_URL}/dashboard/connect/success?account=${account.id}`;
+    
+    const refreshUrl = barId 
+      ? `${process.env.FRONTEND_URL}/dashboard/connect/refresh?account=${account.id}&barId=${barId}`
+      : `${process.env.FRONTEND_URL}/dashboard/connect/refresh?account=${account.id}`;
+    
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.FRONTEND_URL}/dashboard/connect/refresh`,
-      return_url: `${process.env.FRONTEND_URL}/dashboard/connect/success`,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
       type: 'account_onboarding',
     });
 

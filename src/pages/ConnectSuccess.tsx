@@ -27,8 +27,8 @@ export const ConnectSuccessPage = () => {
     detailsSubmitted: boolean;
   } | null>(null);
 
-  // Get account ID from URL params or localStorage
-  const accountId = searchParams.get('account') || localStorage.getItem('connectAccountId');
+  // Get account ID from URL params only (don't rely on localStorage)
+  const accountId = searchParams.get('account');
 
   useEffect(() => {
     if (accountId) {
@@ -61,7 +61,7 @@ export const ConnectSuccessPage = () => {
         
         // Update the bar's Connect account status to 'active'
         try {
-          const barId = searchParams.get('barId') || localStorage.getItem('currentBarId');
+          const barId = searchParams.get('barId');
           if (barId) {
             await updateBeachBarConnectAccount(barId, accountId, 'active');
             console.log('Updated bar Connect account status to active');

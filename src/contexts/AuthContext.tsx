@@ -186,6 +186,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       await signOut(auth);
       setCurrentUser(null);
+      
+      // Clear any cached data from localStorage
+      localStorage.removeItem('connectAccountId');
+      localStorage.removeItem('currentBarId');
+      localStorage.removeItem('currentOrder');
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
@@ -267,6 +272,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await deleteUser(auth.currentUser);
       
       setCurrentUser(null);
+      
+      // Clear any cached data from localStorage
+      localStorage.removeItem('connectAccountId');
+      localStorage.removeItem('currentBarId');
+      localStorage.removeItem('currentOrder');
     } catch (error) {
       console.error('Error deleting account:', error);
       throw error;

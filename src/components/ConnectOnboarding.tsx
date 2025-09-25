@@ -66,6 +66,7 @@ export const ConnectOnboarding = ({
           email: ownerEmail,
           businessName: barName,
           ownerId: ownerId,
+          barId: barId,
         }),
       });
 
@@ -93,10 +94,6 @@ export const ConnectOnboarding = ({
       if (!newWindow) {
         throw new Error('Failed to open new window. Please check your popup blocker settings.');
       }
-      
-      // Store account ID and bar ID for future reference
-      localStorage.setItem('connectAccountId', data.accountId);
-      localStorage.setItem('currentBarId', barId);
       
       if (onAccountCreated) {
         onAccountCreated(data.accountId);
@@ -128,11 +125,10 @@ export const ConnectOnboarding = ({
   };
 
   useEffect(() => {
-    // Check if there's an existing account ID
-    const existingAccountId = localStorage.getItem('connectAccountId');
-    if (existingAccountId) {
-      checkAccountStatus(existingAccountId);
-    }
+    // Clear any stale localStorage data when component mounts
+    // This ensures fresh state for each user session
+    localStorage.removeItem('connectAccountId');
+    localStorage.removeItem('currentBarId');
   }, []);
 
   const getStatusBadge = () => {
