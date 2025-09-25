@@ -64,7 +64,7 @@ export const ConnectOnboarding = ({
         ownerId: ownerId,
       });
 
-      const response = await fetch('/api/create-connect-account', {
+      const response = await fetch('/api/stripe-connect?action=create-account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ export const ConnectOnboarding = ({
 
   const checkAccountStatus = async (accountId: string) => {
     try {
-      const response = await fetch(`/api/get-connect-account?accountId=${accountId}`);
+      const response = await fetch(`/api/stripe-connect?action=get-account&accountId=${accountId}`);
       const data = await response.json();
 
       if (data.error) {
@@ -162,7 +162,7 @@ export const ConnectOnboarding = ({
     if (!account?.accountId) return;
     
     try {
-      const response = await fetch(`/api/debug-connect-account?accountId=${account.accountId}`);
+      const response = await fetch(`/api/stripe-connect?action=debug-account&accountId=${account.accountId}`);
       const debugData = await response.json();
       
       console.group('🔍 STRIPE CONNECT ACCOUNT DEBUG REPORT');
@@ -195,7 +195,7 @@ export const ConnectOnboarding = ({
     try {
       console.log('Re-opening onboarding for account:', account.accountId);
 
-      const response = await fetch('/api/create-account-link', {
+      const response = await fetch('/api/stripe-connect?action=create-account-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
