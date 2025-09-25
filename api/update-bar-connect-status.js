@@ -1,5 +1,18 @@
-import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from './firebase';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, query, where, getDocs, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCoaxqngH8sPXfMb5ecVOz6mdSEYYNLMoM",
+  authDomain: "barweb-2cb4c.firebaseapp.com",
+  projectId: "barweb-2cb4c",
+  storageBucket: "barweb-2cb4c.firebasestorage.app",
+  messagingSenderId: "715821711318",
+  appId: "1:715821711318:web:43235b10b576777b016e77"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
