@@ -28,12 +28,6 @@ interface ConnectAccount {
     currently_due?: string[];
     eventually_due?: string[];
   };
-  // Enhanced debug properties
-  currentlyDue?: string[];
-  pastDue?: string[];
-  pendingVerification?: string[];
-  eventuallyDue?: string[];
-  disabled_reason?: string;
 }
 
 interface ConnectOnboardingProps {
@@ -64,7 +58,7 @@ export const ConnectOnboarding = ({
         ownerId: ownerId,
       });
 
-      const response = await fetch('/api/stripe-connect?action=create-account', {
+      const response = await fetch('/api/create-connect-account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,6 +96,10 @@ export const ConnectOnboarding = ({
         throw new Error('Failed to open new window. Please check your popup blocker settings.');
       }
       
+      // Store account ID and bar ID for future reference
+      localStorage.setItem('connectAccountId', data.accountId);
+      localStorage.setItem('currentBarId', barId);
+      
       if (onAccountCreated) {
         onAccountCreated(data.accountId);
       }
@@ -117,7 +115,7 @@ export const ConnectOnboarding = ({
 
   const checkAccountStatus = async (accountId: string) => {
     try {
-      const response = await fetch(`/api/stripe-connect?action=get-account&accountId=${accountId}`);
+      const response = await fetch(`/api/get-connect-account?accountId=${accountId}`);
       const data = await response.json();
 
       if (data.error) {
@@ -125,119 +123,19 @@ export const ConnectOnboarding = ({
         return;
       }
 
-      console.log('Connect account status retrieved:', {
-        accountId: data.accountId,
-        status: data.status,
-        isOnboarded: data.isOnboarded,
-        chargesEnabled: data.chargesEnabled,
-        payoutsEnabled: data.payoutsEnabled,
-        detailsSubmitted: data.detailsSubmitted,
-        currentlyDue: data.currentlyDue,
-        pastDue: data.pastDue,
-        pendingVerification: data.pendingVerification,
-        disabledReason: data.disabled_reason
-      });
-
       setAccount(data);
     } catch (error) {
       console.error('Error checking account status:', error);
     }
   };
 
-  const refreshAccountStatus = async () => {
-    if (!account?.accountId) return;
-    
-    setIsLoading(true);
-    try {
-      await checkAccountStatus(account.accountId);
-      toast.success('Account status refreshed');
-    } catch (error) {
-      toast.error('Failed to refresh account status');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const debugAccount = async () => {
-    if (!account?.accountId) return;
-    
-    try {
-      const response = await fetch(`/api/stripe-connect?action=debug-account&accountId=${account.accountId}`);
-      const debugData = await response.json();
-      
-      console.group('🔍 STRIPE CONNECT ACCOUNT DEBUG REPORT');
-      console.log('📊 Account Analysis:', debugData.analysis);
-      console.log('⚠️ Recommendations:', debugData.recommendations);
-      console.log('🔧 Raw Requirements:', debugData.debug_info);
-      console.groupEnd();
-      
-      // Show recommendations in a toast
-      if (debugData.recommendations?.length > 0) {
-        const urgentItems = debugData.recommendations.filter(r => r.priority === 'URGENT');
-        if (urgentItems.length > 0) {
-          toast.error(`URGENT: ${urgentItems[0].issue} - Check console for details`);
-        } else {
-          toast.info('Debug report generated - Check browser console for detailed analysis');
-        }
-      } else {
-        toast.success('No immediate issues found - Check console for full report');
-      }
-    } catch (error) {
-      console.error('Error debugging account:', error);
-      toast.error('Failed to generate debug report');
-    }
-  };
-
-  const reOpenOnboarding = async () => {
-    if (!account?.accountId) return;
-    
-    setIsCreating(true);
-    try {
-      console.log('Re-opening onboarding for account:', account.accountId);
-
-      const response = await fetch('/api/stripe-connect?action=create-account-link', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          accountId: account.accountId,
-          barId: barId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}`);
-      }
-
-      if (!data.onboardingUrl) {
-        throw new Error('No onboarding URL received from server');
-      }
-
-      // Open onboarding in new window
-      console.log('Opening re-onboarding URL:', data.onboardingUrl);
-      const newWindow = window.open(data.onboardingUrl, '_blank');
-      
-      if (!newWindow) {
-        throw new Error('Failed to open new window. Please check your popup blocker settings.');
-      }
-
-      toast.success('Re-onboarding started! Complete the setup in the new window.');
-    } catch (error) {
-      console.error('Error re-opening onboarding:', error);
-      toast.error(`Failed to re-open onboarding: ${error.message}`);
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   useEffect(() => {
-    // Clear any stale localStorage data when component mounts
-    // This ensures fresh state for each user session
-    localStorage.removeItem('connectAccountId');
-    localStorage.removeItem('currentBarId');
+    // Check if there's an existing account ID
+    const existingAccountId = localStorage.getItem('connectAccountId');
+    if (existingAccountId) {
+      checkAccountStatus(existingAccountId);
+    }
   }, []);
 
   const getStatusBadge = () => {
@@ -246,58 +144,35 @@ export const ConnectOnboarding = ({
     if (account.isOnboarded) {
       return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Ready to Accept Payments</Badge>;
     } else if (account.detailsSubmitted) {
-      if (account.chargesEnabled && !account.payoutsEnabled) {
-        return <Badge variant="default" className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Charges Enabled - Payouts Pending</Badge>;
-      } else if (!account.chargesEnabled && account.payoutsEnabled) {
-        return <Badge variant="default" className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Payouts Enabled - Charges Pending</Badge>;
-      } else {
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Under Review</Badge>;
-      }
+      return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Under Review</Badge>;
     } else {
       return <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" />Setup Required</Badge>;
     }
   };
 
   const getRequirementsAlert = () => {
-    if (!account) return null;
+    if (!account?.requirements) return null;
 
-    const currentlyDue = account.currentlyDue || [];
-    const pastDue = account.pastDue || [];
-    const pendingVerification = account.pendingVerification || [];
-    const eventuallyDue = account.eventuallyDue || [];
+    const currentlyDue = account.requirements.currently_due || [];
+    const eventuallyDue = account.requirements.eventually_due || [];
 
-    if (currentlyDue.length === 0 && pastDue.length === 0 && pendingVerification.length === 0 && eventuallyDue.length === 0) {
+    if (currentlyDue.length === 0 && eventuallyDue.length === 0) {
       return null;
     }
 
     return (
-      <Alert className={pastDue.length > 0 ? "border-red-200 bg-red-50" : "border-yellow-200 bg-yellow-50"}>
+      <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
           <div className="space-y-2">
-            {pastDue.length > 0 && (
-              <div className="text-red-800">
-                <strong>⚠️ Past Due (Account may be restricted):</strong> {pastDue.join(', ')}
-              </div>
-            )}
             {currentlyDue.length > 0 && (
               <div>
-                <strong>Currently Required:</strong> {currentlyDue.join(', ')}
-              </div>
-            )}
-            {pendingVerification.length > 0 && (
-              <div className="text-blue-800">
-                <strong>Pending Verification:</strong> {pendingVerification.join(', ')}
+                <strong>Required:</strong> {currentlyDue.join(', ')}
               </div>
             )}
             {eventuallyDue.length > 0 && (
-              <div className="text-gray-600">
-                <strong>Eventually Required:</strong> {eventuallyDue.join(', ')}
-              </div>
-            )}
-            {account.disabled_reason && (
-              <div className="text-red-800 mt-2">
-                <strong>Disabled Reason:</strong> {account.disabled_reason}
+              <div>
+                <strong>Eventually required:</strong> {eventuallyDue.join(', ')}
               </div>
             )}
           </div>
@@ -363,27 +238,7 @@ export const ConnectOnboarding = ({
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Account Status</h3>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={debugAccount}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    🔍 Debug
-                  </Button>
-                  <Button
-                    onClick={refreshAccountStatus}
-                    variant="outline"
-                    size="sm"
-                    disabled={isLoading}
-                  >
-                    <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
+              <h3 className="font-semibold">Account Status</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Charges:</span>{' '}
@@ -407,26 +262,14 @@ export const ConnectOnboarding = ({
                 <p className="text-sm text-muted-foreground">
                   Complete your account setup to start receiving payments.
                 </p>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={createConnectAccount}
-                    variant="outline"
-                    className="flex-1"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? 'Creating Account...' : 'Continue Setup'}
-                  </Button>
-                  {account.detailsSubmitted && (
-                    <Button 
-                      onClick={reOpenOnboarding}
-                      variant="secondary"
-                      className="flex-1"
-                      disabled={isCreating}
-                    >
-                      {isCreating ? 'Opening...' : 'Re-open Onboarding'}
-                    </Button>
-                  )}
-                </div>
+                <Button 
+                  onClick={createConnectAccount}
+                  variant="outline"
+                  className="w-full"
+                  disabled={isCreating}
+                >
+                  {isCreating ? 'Creating Account...' : 'Continue Setup'}
+                </Button>
               </div>
             )}
 
@@ -439,25 +282,6 @@ export const ConnectOnboarding = ({
               </Alert>
             )}
 
-            {!account.isOnboarded && account.detailsSubmitted && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="space-y-2">
-                    <strong>Account Under Review:</strong>
-                    <p className="text-sm">
-                      Your account information has been submitted and is being reviewed by Stripe. 
-                      This process typically takes 1-2 business days.
-                    </p>
-                    {(account.currentlyDue?.length > 0 || account.pastDue?.length > 0) && (
-                      <p className="text-sm">
-                        <strong>Action needed:</strong> Use the "Re-open Onboarding" button above to provide missing information.
-                      </p>
-                    )}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
           </div>
         )}
       </CardContent>

@@ -27,8 +27,8 @@ export const ConnectSuccessPage = () => {
     detailsSubmitted: boolean;
   } | null>(null);
 
-  // Get account ID from URL params only (don't rely on localStorage)
-  const accountId = searchParams.get('account');
+  // Get account ID from URL params or localStorage
+  const accountId = searchParams.get('account') || localStorage.getItem('connectAccountId');
 
   useEffect(() => {
     if (accountId) {
@@ -39,7 +39,7 @@ export const ConnectSuccessPage = () => {
   const checkAccountStatus = async (accountId: string) => {
     setIsCheckingStatus(true);
     try {
-      const response = await fetch(`/api/stripe-connect?action=get-account&accountId=${accountId}`);
+      const response = await fetch(`/api/get-connect-account?accountId=${accountId}`);
       const data = await response.json();
 
       if (data.error) {
@@ -61,7 +61,7 @@ export const ConnectSuccessPage = () => {
         
         // Update the bar's Connect account status to 'active'
         try {
-          const barId = searchParams.get('barId');
+          const barId = searchParams.get('barId') || localStorage.getItem('currentBarId');
           if (barId) {
             await updateBeachBarConnectAccount(barId, accountId, 'active');
             console.log('Updated bar Connect account status to active');
