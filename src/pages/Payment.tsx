@@ -185,7 +185,7 @@ export const PaymentPage = () => {
                             {item.type && ` (${item.type})`}
                           </span>
                           <span>
-                            ${item.quantity ? item.price * item.quantity : item.price}
+                            €{item.quantity ? item.price * item.quantity : item.price}
                           </span>
                         </div>
                       ))}
@@ -193,7 +193,7 @@ export const PaymentPage = () => {
                     <Separator />
                     <div className="flex justify-between items-center font-bold text-lg">
                       <span>Total:</span>
-                      <span>${orderData.total}</span>
+                      <span>€{orderData.total}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -337,7 +337,7 @@ export const PaymentPage = () => {
                                 {item.category} • Qty: {item.quantity}
                               </p>
                             </div>
-                            <span className="font-medium">${item.price * item.quantity}</span>
+                            <span className="font-medium">€{item.price * item.quantity}</span>
                           </div>
                         ))}
                       </div>
@@ -346,7 +346,7 @@ export const PaymentPage = () => {
                       
                       <div className="flex justify-between items-center font-bold text-lg">
                         <span>Total:</span>
-                        <span>${orderData.total}</span>
+                        <span>€{orderData.total}</span>
                       </div>
                     </div>
                   </CardContent>

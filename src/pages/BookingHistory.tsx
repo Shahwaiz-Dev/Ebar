@@ -230,7 +230,7 @@ export const BookingHistoryPage = () => {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Spent</p>
                     <p className="text-2xl font-bold text-primary">
-                      ${bookings.reduce((sum, b) => sum + b.total, 0) + orders.reduce((sum, o) => sum + o.total, 0)}
+                      €{bookings.reduce((sum, b) => sum + b.total, 0) + orders.reduce((sum, o) => sum + o.total, 0)}
                     </p>
                   </div>
                   <Receipt className="h-8 w-8 text-primary" />
@@ -312,7 +312,7 @@ export const BookingHistoryPage = () => {
                                       {booking.status}
                                     </Badge>
                                     <p className="text-lg font-bold text-primary mt-2">
-                                      ${booking.total}
+                                      €{booking.total}
                                     </p>
                                   </div>
                                 </div>
@@ -354,7 +354,7 @@ export const BookingHistoryPage = () => {
                                       <div className="border-t pt-2 mt-2">
                                         <div className="flex justify-between font-semibold">
                                           <span>Total</span>
-                                          <span>${booking.total}</span>
+                                          <span>€{booking.total}</span>
                                         </div>
                                       </div>
                                     </div>
@@ -437,7 +437,7 @@ export const BookingHistoryPage = () => {
                                       {order.status}
                                     </Badge>
                                     <p className="text-lg font-bold text-primary mt-2">
-                                      ${order.total}
+                                      €{order.total}
                                     </p>
                                   </div>
                                 </div>
@@ -474,14 +474,14 @@ export const BookingHistoryPage = () => {
                                             {item.name} {item.quantity > 1 && `× ${item.quantity}`}
                                           </span>
                                           <span className="font-medium">
-                                            ${item.price * item.quantity}
+                                            €{item.price * item.quantity}
                                           </span>
                                         </div>
                                       ))}
                                       <div className="border-t pt-2 mt-2">
                                         <div className="flex justify-between font-semibold">
                                           <span>Total</span>
-                                          <span>${order.total}</span>
+                                          <span>€{order.total}</span>
                                         </div>
                                       </div>
                                     </div>

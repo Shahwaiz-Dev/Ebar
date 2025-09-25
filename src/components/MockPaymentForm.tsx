@@ -130,7 +130,7 @@ export const MockPaymentForm = ({
                   Processing...
                 </>
               ) : (
-                `${buttonText} $${amount.toFixed(2)}`
+                `${buttonText} €${amount.toFixed(2)}`
               )}
             </Button>
           </div>

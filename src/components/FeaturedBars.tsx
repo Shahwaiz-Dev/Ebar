@@ -181,7 +181,7 @@ export const FeaturedBars = () => {
                     </div>
                   </div>
                   <div className="absolute top-4 left-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold">
-                    ${bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
+                    €{bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
                   </div>
                 </div>
 

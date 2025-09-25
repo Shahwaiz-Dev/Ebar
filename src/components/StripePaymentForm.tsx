@@ -259,7 +259,7 @@ const PaymentForm = ({ amount, onSuccess, onError, buttonText = 'Pay', metadata 
                   Processing...
                 </>
               ) : (
-                `${buttonText} $${amount.toFixed(2)}`
+                `${buttonText} €${amount.toFixed(2)}`
               )}
             </Button>
           </div>

@@ -258,7 +258,7 @@ export const DashboardPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs sm:text-sm font-medium text-muted-foreground">Today's Revenue</p>
-                    <p className="text-lg sm:text-2xl font-bold">${stats?.todayRevenue?.toLocaleString() || 0}</p>
+                    <p className="text-lg sm:text-2xl font-bold">€{stats?.todayRevenue?.toLocaleString() || 0}</p>
                   </div>
                   <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
                 </div>
@@ -421,7 +421,7 @@ export const DashboardPage = () => {
                                     className="text-xs h-8 sm:h-9"
                                     onClick={() => handleToggleAvailability(sunbed.id, 'sunbed')}
                                   >
-                                    {sunbed.id} - ${sunbed.price}
+                                    {sunbed.id} - €{sunbed.price}
                                   </Button>
                                 ))}
                               </div>
@@ -437,7 +437,7 @@ export const DashboardPage = () => {
                                     className="text-xs h-8 sm:h-9"
                                     onClick={() => handleToggleAvailability(umbrella.id, 'umbrella')}
                                   >
-                                    {umbrella.id} - ${umbrella.price}
+                                    {umbrella.id} - €{umbrella.price}
                                   </Button>
                                 ))}
                               </div>
@@ -570,7 +570,7 @@ export const DashboardPage = () => {
                                   <Badge variant="secondary">{item.category}</Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground">{item.description}</p>
-                                <p className="text-lg font-bold text-primary mt-1">${item.price}</p>
+                                <p className="text-lg font-bold text-primary mt-1">€{item.price}</p>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Button size="sm" variant="outline">

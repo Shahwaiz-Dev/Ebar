@@ -229,16 +229,16 @@ const ConnectPaymentFormComponent = ({
           <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="font-medium">Total Amount:</span>
-              <span className="font-bold">${amount.toFixed(2)}</span>
+              <span className="font-bold">€{amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center text-sm text-gray-600">
               <span>Platform Fee (3%):</span>
-              <span>-${paymentDetails.platformFee.toFixed(2)}</span>
+              <span>-€{paymentDetails.platformFee.toFixed(2)}</span>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <span className="font-medium">Bar Owner Receives:</span>
-              <span className="font-bold text-green-600">${paymentDetails.ownerAmount.toFixed(2)}</span>
+              <span className="font-bold text-green-600">€{paymentDetails.ownerAmount.toFixed(2)}</span>
             </div>
           </div>
         )}

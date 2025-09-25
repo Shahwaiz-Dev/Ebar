@@ -357,7 +357,7 @@ export const BarDetailsPage = () => {
                                 <p className="font-medium">{item.name}</p>
                                 <p className="text-sm text-muted-foreground">{item.description}</p>
                               </div>
-                              <span className="font-bold text-primary">${item.price}</span>
+                              <span className="font-bold text-primary">€{item.price}</span>
                             </div>
                           ))}
                       </div>
@@ -373,7 +373,7 @@ export const BarDetailsPage = () => {
                                 <p className="font-medium">{item.name}</p>
                                 <p className="text-sm text-muted-foreground">{item.description}</p>
                               </div>
-                              <span className="font-bold text-primary">${item.price}</span>
+                              <span className="font-bold text-primary">€{item.price}</span>
                             </div>
                           ))}
                       </div>

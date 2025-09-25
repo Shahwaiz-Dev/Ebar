@@ -253,7 +253,7 @@ export const QRMenuPage = () => {
                                 <Badge variant="secondary">{item.category}</Badge>
                               </div>
                               <p className="text-sm text-muted-foreground">{item.description}</p>
-                              <p className="text-lg font-bold text-primary mt-1">${item.price}</p>
+                              <p className="text-lg font-bold text-primary mt-1">€{item.price}</p>
                             </div>
                             <Button
                               size="sm"
@@ -295,7 +295,7 @@ export const QRMenuPage = () => {
                           <div className="flex-1">
                             <p className="font-medium">{item.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              ${item.price} × {item.quantity}
+                              €{item.price} × {item.quantity}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">

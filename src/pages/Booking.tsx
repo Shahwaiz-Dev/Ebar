@@ -467,7 +467,7 @@ export const BookingPage = () => {
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground mb-2">{sunbed.type}</p>
-                            <p className="font-bold text-primary">${sunbed.price}</p>
+                            <p className="font-bold text-primary">€{sunbed.price}</p>
                           </div>
                         ))}
                       </div>
@@ -503,7 +503,7 @@ export const BookingPage = () => {
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground mb-2">{umbrella.type}</p>
-                            <p className="font-bold text-primary">${umbrella.price}</p>
+                            <p className="font-bold text-primary">€{umbrella.price}</p>
                           </div>
                         ))}
                       </div>
@@ -530,13 +530,13 @@ export const BookingPage = () => {
                                 <p className="font-medium">{item.category === 'sunbed' ? 'Sunbed' : 'Umbrella'} {item.id}</p>
                                 <p className="text-sm text-muted-foreground">{item.type}</p>
                               </div>
-                              <span className="font-medium">${item.price}</span>
+                              <span className="font-medium">€{item.price}</span>
                             </div>
                           ))}
                           <Separator />
                           <div className="flex justify-between items-center font-bold text-lg">
                             <span>Total:</span>
-                            <span>${getTotalPrice()}</span>
+                            <span>€{getTotalPrice()}</span>
                           </div>
                         </div>
                       )}

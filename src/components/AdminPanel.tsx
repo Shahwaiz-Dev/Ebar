@@ -379,7 +379,7 @@ export const AdminPanel = () => {
                         <span className="font-medium">{item.name}</span>
                         <span className="text-sm text-muted-foreground ml-2">({item.category})</span>
                       </div>
-                      <span className="font-semibold">${item.price}</span>
+                      <span className="font-semibold">€{item.price}</span>
                     </div>
                   ))}
                 </div>

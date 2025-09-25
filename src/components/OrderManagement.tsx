@@ -111,7 +111,7 @@ export const OrderManagement = ({ barId }: OrderManagementProps) => {
                       <span className="truncate">{item.name}</span>
                       <span className="text-muted-foreground">x{item.quantity}</span>
                     </div>
-                    <span className="font-medium">${item.price}</span>
+                    <span className="font-medium">€{item.price}</span>
                   </div>
                 ))}
               </div>
@@ -119,7 +119,7 @@ export const OrderManagement = ({ barId }: OrderManagementProps) => {
             
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t">
               <div>
-                <span className="font-semibold text-sm sm:text-base">${order.total}</span>
+                <span className="font-semibold text-sm sm:text-base">€{order.total}</span>
               </div>
               <div className="flex gap-2">
                 {order.status === 'pending' && (

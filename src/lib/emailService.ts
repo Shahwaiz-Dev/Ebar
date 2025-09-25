@@ -133,7 +133,7 @@ const getBookingConfirmationTemplate = (data: BookingEmailData) => {
             </tr>
             <tr>
                 <td style="padding: 8px 0; font-weight: bold;">Total:</td>
-                <td style="padding: 8px 0; font-weight: bold; color: #2563eb;">$${data.totalAmount.toFixed(2)}</td>
+                <td style="padding: 8px 0; font-weight: bold; color: #2563eb;">€{data.totalAmount.toFixed(2)}</td>
             </tr>
             <tr>
                 <td style="padding: 8px 0; font-weight: bold;">Booking ID:</td>

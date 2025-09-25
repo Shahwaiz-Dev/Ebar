@@ -138,7 +138,7 @@ export const BookingManagement = ({ barId }: BookingManagementProps) => {
             
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t">
               <div>
-                <span className="font-semibold text-sm sm:text-base">${booking.total}</span>
+                <span className="font-semibold text-sm sm:text-base">€{booking.total}</span>
               </div>
               <div className="flex gap-2">
                 {booking.status === 'pending' && (

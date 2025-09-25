@@ -109,10 +109,10 @@ export const SearchPage = () => {
 
   const getPriceColor = (priceRange: string) => {
     switch (priceRange) {
-      case '$': return 'text-green-600';
-      case '$$': return 'text-yellow-600';
-      case '$$$': return 'text-orange-600';
-      case '$$$$': return 'text-red-600';
+      case '€': return 'text-green-600';
+      case '€€': return 'text-yellow-600';
+      case '€€€': return 'text-orange-600';
+      case '€€€€': return 'text-red-600';
       default: return 'text-gray-600';
     }
   };
@@ -241,7 +241,7 @@ export const SearchPage = () => {
                             </span>
                           </div>
                           <div className="text-base font-bold text-primary">
-                            ${bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
+                            €{bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
                           </div>
                         </div>
                       </div>

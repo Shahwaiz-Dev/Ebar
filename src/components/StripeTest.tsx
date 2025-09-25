@@ -44,7 +44,7 @@ const TestPaymentForm = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: 10.00, // $10 test payment
+          amount: 10.00, // €10 test payment
           currency: 'usd',
           metadata: {
             test: 'true',
@@ -161,7 +161,7 @@ const TestPaymentForm = () => {
                   Processing...
                 </>
               ) : (
-                'Test Payment $10.00'
+                'Test Payment €10.00'
               )}
             </Button>
           </>

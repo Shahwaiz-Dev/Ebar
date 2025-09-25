@@ -10,7 +10,8 @@ import {
   ExternalLink,
   DollarSign,
   Shield,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -118,9 +119,81 @@ export const ConnectOnboarding = ({
         return;
       }
 
+      console.log('Connect account status retrieved:', {
+        accountId: data.accountId,
+        status: data.status,
+        isOnboarded: data.isOnboarded,
+        chargesEnabled: data.chargesEnabled,
+        payoutsEnabled: data.payoutsEnabled,
+        detailsSubmitted: data.detailsSubmitted,
+        currentlyDue: data.currentlyDue,
+        pastDue: data.pastDue,
+        pendingVerification: data.pendingVerification,
+        disabledReason: data.disabled_reason
+      });
+
       setAccount(data);
     } catch (error) {
       console.error('Error checking account status:', error);
+    }
+  };
+
+  const refreshAccountStatus = async () => {
+    if (!account?.accountId) return;
+    
+    setIsLoading(true);
+    try {
+      await checkAccountStatus(account.accountId);
+      toast.success('Account status refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh account status');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const reOpenOnboarding = async () => {
+    if (!account?.accountId) return;
+    
+    setIsCreating(true);
+    try {
+      console.log('Re-opening onboarding for account:', account.accountId);
+
+      const response = await fetch('/api/create-account-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accountId: account.accountId,
+          barId: barId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      if (!data.onboardingUrl) {
+        throw new Error('No onboarding URL received from server');
+      }
+
+      // Open onboarding in new window
+      console.log('Opening re-onboarding URL:', data.onboardingUrl);
+      const newWindow = window.open(data.onboardingUrl, '_blank');
+      
+      if (!newWindow) {
+        throw new Error('Failed to open new window. Please check your popup blocker settings.');
+      }
+
+      toast.success('Re-onboarding started! Complete the setup in the new window.');
+    } catch (error) {
+      console.error('Error re-opening onboarding:', error);
+      toast.error(`Failed to re-open onboarding: ${error.message}`);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -137,35 +210,58 @@ export const ConnectOnboarding = ({
     if (account.isOnboarded) {
       return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Ready to Accept Payments</Badge>;
     } else if (account.detailsSubmitted) {
-      return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Under Review</Badge>;
+      if (account.chargesEnabled && !account.payoutsEnabled) {
+        return <Badge variant="default" className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Charges Enabled - Payouts Pending</Badge>;
+      } else if (!account.chargesEnabled && account.payoutsEnabled) {
+        return <Badge variant="default" className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Payouts Enabled - Charges Pending</Badge>;
+      } else {
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Under Review</Badge>;
+      }
     } else {
       return <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" />Setup Required</Badge>;
     }
   };
 
   const getRequirementsAlert = () => {
-    if (!account?.requirements) return null;
+    if (!account) return null;
 
-    const currentlyDue = account.requirements.currently_due || [];
-    const eventuallyDue = account.requirements.eventually_due || [];
+    const currentlyDue = account.currentlyDue || [];
+    const pastDue = account.pastDue || [];
+    const pendingVerification = account.pendingVerification || [];
+    const eventuallyDue = account.eventuallyDue || [];
 
-    if (currentlyDue.length === 0 && eventuallyDue.length === 0) {
+    if (currentlyDue.length === 0 && pastDue.length === 0 && pendingVerification.length === 0 && eventuallyDue.length === 0) {
       return null;
     }
 
     return (
-      <Alert>
+      <Alert className={pastDue.length > 0 ? "border-red-200 bg-red-50" : "border-yellow-200 bg-yellow-50"}>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
           <div className="space-y-2">
+            {pastDue.length > 0 && (
+              <div className="text-red-800">
+                <strong>⚠️ Past Due (Account may be restricted):</strong> {pastDue.join(', ')}
+              </div>
+            )}
             {currentlyDue.length > 0 && (
               <div>
-                <strong>Required:</strong> {currentlyDue.join(', ')}
+                <strong>Currently Required:</strong> {currentlyDue.join(', ')}
+              </div>
+            )}
+            {pendingVerification.length > 0 && (
+              <div className="text-blue-800">
+                <strong>Pending Verification:</strong> {pendingVerification.join(', ')}
               </div>
             )}
             {eventuallyDue.length > 0 && (
-              <div>
-                <strong>Eventually required:</strong> {eventuallyDue.join(', ')}
+              <div className="text-gray-600">
+                <strong>Eventually Required:</strong> {eventuallyDue.join(', ')}
+              </div>
+            )}
+            {account.disabled_reason && (
+              <div className="text-red-800 mt-2">
+                <strong>Disabled Reason:</strong> {account.disabled_reason}
               </div>
             )}
           </div>
@@ -231,7 +327,18 @@ export const ConnectOnboarding = ({
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <h3 className="font-semibold">Account Status</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Account Status</h3>
+                <Button
+                  onClick={refreshAccountStatus}
+                  variant="outline"
+                  size="sm"
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Charges:</span>{' '}
@@ -255,14 +362,26 @@ export const ConnectOnboarding = ({
                 <p className="text-sm text-muted-foreground">
                   Complete your account setup to start receiving payments.
                 </p>
-                <Button 
-                  onClick={createConnectAccount}
-                  variant="outline"
-                  className="w-full"
-                  disabled={isCreating}
-                >
-                  {isCreating ? 'Creating Account...' : 'Continue Setup'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={createConnectAccount}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? 'Creating Account...' : 'Continue Setup'}
+                  </Button>
+                  {account.detailsSubmitted && (
+                    <Button 
+                      onClick={reOpenOnboarding}
+                      variant="secondary"
+                      className="flex-1"
+                      disabled={isCreating}
+                    >
+                      {isCreating ? 'Opening...' : 'Re-open Onboarding'}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -271,6 +390,26 @@ export const ConnectOnboarding = ({
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription>
                   Your account is fully set up! You can now receive payments from customers.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {!account.isOnboarded && account.detailsSubmitted && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <strong>Account Under Review:</strong>
+                    <p className="text-sm">
+                      Your account information has been submitted and is being reviewed by Stripe. 
+                      This process typically takes 1-2 business days.
+                    </p>
+                    {(account.currentlyDue?.length > 0 || account.pastDue?.length > 0) && (
+                      <p className="text-sm">
+                        <strong>Action needed:</strong> Use the "Re-open Onboarding" button above to provide missing information.
+                      </p>
+                    )}
+                  </div>
                 </AlertDescription>
               </Alert>
             )}

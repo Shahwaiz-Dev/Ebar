@@ -299,7 +299,7 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
                     </div>
                   ))
                 ) : (
-                  <div className="text-2xl font-bold text-gray-500">$0.00</div>
+                  <div className="text-2xl font-bold text-gray-500">€0.00</div>
                 )}
                 <p className="text-sm text-muted-foreground">
                   Ready for payout
@@ -314,7 +314,7 @@ export const ConnectDashboard = ({ accountId, barName, barId }: ConnectDashboard
                     </div>
                   ))
                 ) : (
-                  <div className="text-2xl font-bold text-gray-500">$0.00</div>
+                  <div className="text-2xl font-bold text-gray-500">€0.00</div>
                 )}
                 <p className="text-sm text-muted-foreground">
                   Processing payments

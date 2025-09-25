@@ -36,7 +36,12 @@ export default async function handler(req, res) {
     if (chargesEnabled && payoutsEnabled) {
       connectAccountStatus = 'active';
     } else if (detailsSubmitted) {
-      connectAccountStatus = 'restricted';
+      // More nuanced status for partial enablement
+      if (chargesEnabled || payoutsEnabled) {
+        connectAccountStatus = 'restricted'; // Partially enabled
+      } else {
+        connectAccountStatus = 'restricted'; // Under review
+      }
     }
 
     await updateDoc(doc(db, 'beachBars', barId), {

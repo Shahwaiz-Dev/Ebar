@@ -164,7 +164,7 @@ export const FavoritesPage = () => {
                           </span>
                         </div>
                         <div className="text-base font-bold text-primary">
-                          ${bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
+                          €{bar.sunbeds.length > 0 ? bar.sunbeds[0].price : 50}
                         </div>
                       </div>
                     </div>

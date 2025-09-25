@@ -104,7 +104,7 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here`}
                     <ul className="text-sm space-y-1">
                       <li><strong>CVC:</strong> Any 3 digits (e.g., 123)</li>
                       <li><strong>Expiry:</strong> Any future date (e.g., 12/25)</li>
-                      <li><strong>Amount:</strong> $10.00 (test payment)</li>
+                      <li><strong>Amount:</strong> €10.00 (test payment)</li>
                     </ul>
                   </div>
 

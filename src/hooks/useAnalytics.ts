@@ -88,7 +88,7 @@ export const useAnalytics = (barId: string) => {
         })),
         ...orders.slice(0, 3).map(order => ({
           type: 'order' as const,
-          message: `${order.customerName} placed order for $${order.total}`,
+          message: `${order.customerName} placed order for €${order.total}`,
           timestamp: order.createdAt.toDate()
         })),
         ...reviews.slice(0, 3).map(review => ({
