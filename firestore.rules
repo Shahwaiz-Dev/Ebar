@@ -100,10 +100,20 @@ service cloud.firestore {
     
     // Favorites collection - users can manage their own favorites
     match /favorites/{favoriteId} {
-      allow read, write: if request.auth != null && (
+      allow read: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
       );
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
+      );
+    }
+    
+    // Allow users to query favorites collection to find their own favorites
+    match /favorites/{document=**} {
+      allow read: if request.auth != null;
     }
   }
 }
