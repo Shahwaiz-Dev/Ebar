@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +40,7 @@ export const AuthPage = () => {
   const navigate = useNavigate();
   const { signUp, signIn, updateUserProfile, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +59,15 @@ export const AuthPage = () => {
   const handleInputChange = (field: keyof AuthFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Sync tab from query param if provided (e.g., /auth?tab=login)
+  // Falls back to default 'login' if not specified or invalid
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'login' || tab === 'signup') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,8 +109,14 @@ export const AuthPage = () => {
         });
       }
       
-      // Redirect to home page
-      navigate('/');
+      // Redirect based on action
+      if (activeTab === 'signup') {
+        // After signup, send user to the login page
+        navigate('/auth?tab=login');
+      } else {
+        // After login, go to home
+        navigate('/');
+      }
     } catch (error: any) {
       console.error('Authentication error:', error);
       toast({

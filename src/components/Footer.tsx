@@ -8,40 +8,40 @@ export const Footer = () => {
 
   const footerLinks = {
     Company: [
-      { label: 'About Us', href: '#' },
-      { label: 'Careers', href: '#' },
-      { label: 'Press', href: '#' },
-      { label: 'News', href: '#' },
-      { label: 'Partnerships', href: '#' },
+      { label: 'About Us', href: '/contact' },
+      { label: 'Careers', href: 'https://careers.beachvibe.com' },
+      { label: 'Press', href: 'https://press.beachvibe.com' },
+      { label: 'News', href: 'https://blog.beachvibe.com' },
+      { label: 'Partnerships', href: '/contact' },
     ],
     Support: [
-      { label: 'Help Center', href: '#' },
-      { label: 'Contact Us', href: '#' },
-      { label: 'Safety', href: '#' },
-      { label: 'Cancellation', href: '#' },
-      { label: 'Trust & Safety', href: '#' },
+      { label: 'Help Center', href: 'https://help.beachvibe.com' },
+      { label: 'Contact Us', href: '/contact' },
+      { label: 'Safety', href: 'https://safety.beachvibe.com' },
+      { label: 'Cancellation', href: 'https://help.beachvibe.com/cancellation' },
+      { label: 'Trust & Safety', href: 'https://trust.beachvibe.com' },
     ],
     'For Bars': [
-      { label: 'List Your Bar', href: '#' },
-      { label: 'Bar Resources', href: '#' },
-      { label: 'Community', href: '#' },
-      { label: 'Marketing', href: '#' },
-      { label: 'Analytics', href: '#' },
+      { label: 'List Your Bar', href: '/dashboard' },
+      { label: 'Bar Resources', href: 'https://resources.beachvibe.com' },
+      { label: 'Community', href: 'https://community.beachvibe.com' },
+      { label: 'Marketing', href: 'https://marketing.beachvibe.com' },
+      { label: 'Analytics', href: '/dashboard' },
     ],
     Legal: [
-      { label: 'Privacy Policy', href: '#' },
+      { label: 'Privacy Policy', href: 'https://privacy.beachvibe.com' },
       { label: 'Terms of Service', href: '/terms' },
       { label: 'Cookie Policy', href: '/cookie-policy' },
-      { label: 'Accessibility', href: '#' },
-      { label: 'Sitemap', href: '#' },
+      { label: 'Accessibility', href: 'https://accessibility.beachvibe.com' },
+      { label: 'Sitemap', href: 'https://sitemap.beachvibe.com' },
     ],
   };
 
   const socialLinks = [
-    { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Youtube, href: '#', label: 'YouTube' },
+    { icon: Facebook, href: 'https://facebook.com/beachvibe', label: 'Facebook' },
+    { icon: Instagram, href: 'https://instagram.com/beachvibe', label: 'Instagram' },
+    { icon: Twitter, href: 'https://twitter.com/beachvibe', label: 'Twitter' },
+    { icon: Youtube, href: 'https://youtube.com/@beachvibe', label: 'YouTube' },
   ];
 
   return (
@@ -91,11 +91,15 @@ export const Footer = () => {
             <div className="space-y-3 mb-6">
               <div className="flex items-center text-white/80">
                 <Mail className="h-4 w-4 mr-3 text-primary" />
-                hello@beachvibe.com
+                <a href="mailto:hello@beachvibe.com" className="hover:text-white transition-smooth">
+                  hello@beachvibe.com
+                </a>
               </div>
               <div className="flex items-center text-white/80">
                 <Phone className="h-4 w-4 mr-3 text-primary" />
-                +1 (555) 123-4567
+                <a href="tel:+15551234567" className="hover:text-white transition-smooth">
+                  +1 (555) 123-4567
+                </a>
               </div>
               <div className="flex items-center text-white/80">
                 <MapPin className="h-4 w-4 mr-3 text-primary" />
