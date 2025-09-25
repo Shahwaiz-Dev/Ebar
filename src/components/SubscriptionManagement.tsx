@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Check, Crown, Star, Zap, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserSubscription, useBookingLimits, useSubscriptionPlans, useCurrentPlan } from '@/hooks/useSubscription';
@@ -20,7 +18,6 @@ export const SubscriptionManagement = ({ className }: SubscriptionManagementProp
   const { data: bookingLimits } = useBookingLimits(currentUser?.uid);
   const plans = useSubscriptionPlans();
   const currentPlan = useCurrentPlan(subscription?.tier);
-  const [showPlansDialog, setShowPlansDialog] = useState(false);
 
   const handleUpgrade = async (tier: SubscriptionTier) => {
     try {
@@ -82,65 +79,10 @@ export const SubscriptionManagement = ({ className }: SubscriptionManagementProp
 
   return (
     <div className={className}>
-      <Card>
+      {/* Current Subscription Status */}
+      <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Subscription Plan</span>
-            <Dialog open={showPlansDialog} onOpenChange={setShowPlansDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  View All Plans
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Choose Your Plan</DialogTitle>
-                </DialogHeader>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                  {plans.map((plan) => (
-                    <Card 
-                      key={plan.id} 
-                      className={`relative ${subscription?.tier === plan.id ? 'ring-2 ring-blue-500' : ''}`}
-                    >
-                      {subscription?.tier === plan.id && (
-                        <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-blue-500">
-                          Current Plan
-                        </Badge>
-                      )}
-                      <CardHeader className="text-center pb-2">
-                        <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${getTierColor(plan.id)}`}>
-                          {getTierIcon(plan.id)}
-                        </div>
-                        <CardTitle className="text-xl">{plan.name}</CardTitle>
-                        <div className="text-3xl font-bold">
-                          €{plan.price}
-                          <span className="text-sm font-normal text-muted-foreground">/month</span>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-3 mb-6">
-                          {plan.features.map((feature, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <Button 
-                          className="w-full" 
-                          variant={subscription?.tier === plan.id ? "outline" : "default"}
-                          onClick={() => subscription?.tier === plan.id ? setShowPlansDialog(false) : handleUpgrade(plan.id)}
-                          disabled={subscription?.tier === plan.id}
-                        >
-                          {subscription?.tier === plan.id ? 'Current Plan' : 'Upgrade'}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-          </CardTitle>
+          <CardTitle>Current Subscription</CardTitle>
         </CardHeader>
         <CardContent>
           {subscription ? (
@@ -193,11 +135,59 @@ export const SubscriptionManagement = ({ className }: SubscriptionManagementProp
               <p className="text-sm text-muted-foreground mb-4">
                 Subscribe to start accepting bookings and access premium features.
               </p>
-              <Button onClick={() => setShowPlansDialog(true)}>
-                Choose a Plan
-              </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Available Plans */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Plans</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {plans.map((plan) => (
+              <Card 
+                key={plan.id} 
+                className={`relative h-full flex flex-col ${subscription?.tier === plan.id ? 'ring-2 ring-blue-500' : ''}`}
+              >
+                {subscription?.tier === plan.id && (
+                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-blue-500">
+                    Current Plan
+                  </Badge>
+                )}
+                <CardHeader className="text-center pb-2 flex-shrink-0">
+                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${getTierColor(plan.id)}`}>
+                    {getTierIcon(plan.id)}
+                  </div>
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <div className="text-3xl font-bold">
+                    €{plan.price}
+                    <span className="text-sm font-normal text-muted-foreground">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-col flex-grow">
+                  <ul className="space-y-3 mb-6 flex-grow">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    className="w-full mt-auto" 
+                    variant={subscription?.tier === plan.id ? "outline" : "default"}
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={subscription?.tier === plan.id}
+                  >
+                    {subscription?.tier === plan.id ? 'Current Plan' : 'Upgrade'}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

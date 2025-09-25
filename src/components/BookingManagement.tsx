@@ -46,6 +46,13 @@ export const BookingManagement = ({ barId }: BookingManagementProps) => {
         return;
       }
 
+      // Validate booking has required email data
+      if (!booking.customerEmail) {
+        console.error('Booking missing customer email:', booking);
+        toast.error('Cannot send email: Customer email is missing from booking data');
+        return;
+      }
+
       // Update the booking status first
       await updateBookingStatusMutation.mutateAsync({ id: bookingId, status: 'confirmed' });
       
@@ -66,6 +73,10 @@ export const BookingManagement = ({ barId }: BookingManagementProps) => {
         totalAmount: booking.total,
         bookingId: bookingId,
       };
+
+      // Debug: Log the email data being sent
+      console.log('Sending booking confirmation email with data:', emailData);
+      console.log('Booking object:', booking);
 
       const emailSent = await sendBookingConfirmationEmail(emailData);
       if (emailSent) {

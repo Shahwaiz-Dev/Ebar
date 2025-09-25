@@ -255,6 +255,26 @@ export default async function handler(req, res) {
 
   const { type, data } = req.body;
 
+  // Validate required data
+  if (!data || !data.email) {
+    console.error('Email API error: No recipients defined - missing email in data:', data);
+    return res.status(400).json({ 
+      error: 'No recipients defined', 
+      details: 'Email address is required but not provided',
+      receivedData: data 
+    });
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(data.email)) {
+    console.error('Email API error: Invalid email format:', data.email);
+    return res.status(400).json({ 
+      error: 'Invalid email format', 
+      details: `Email "${data.email}" is not a valid email address` 
+    });
+  }
+
   try {
     // Create transporter
     const transporter = nodemailer.createTransport({
