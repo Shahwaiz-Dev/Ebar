@@ -26,10 +26,7 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
    npm i -g vercel
    ```
 
-2. Login to Vercel:
-   ```bash
-   vercel login
-   ```
+2. 
 
 3. Deploy:
    ```bash
