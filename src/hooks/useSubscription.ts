@@ -4,7 +4,6 @@ import {
   createUserSubscription, 
   updateUserSubscription,
   checkBookingLimit,
-  incrementBookingCount,
   hasFeatureAccess,
   SUBSCRIPTION_PLANS,
   UserSubscription,
@@ -75,21 +74,9 @@ export const useUpdateSubscription = () => {
   });
 };
 
-// Increment booking count mutation
-export const useIncrementBookingCount = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: incrementBookingCount,
-    onSuccess: (_, userId) => {
-      queryClient.invalidateQueries({ queryKey: subscriptionKeys.user(userId) });
-      queryClient.invalidateQueries({ queryKey: subscriptionKeys.limits(userId) });
-    },
-    onError: (error) => {
-      console.error('Error incrementing booking count:', error);
-    },
-  });
-};
+// Increment booking count mutation - now handled server-side via API
+// This hook is no longer needed as booking count increment is handled
+// automatically when bookings are created via the server-side API
 
 // Helper function to check if user has access to a feature
 export const useFeatureAccess = (userTier: SubscriptionTier | null | undefined, requiredTier: SubscriptionTier) => {

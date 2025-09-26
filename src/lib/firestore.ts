@@ -536,19 +536,8 @@ export const updateUserSubscription = async (id: string, updates: Partial<UserSu
   }
 };
 
-export const incrementBookingCount = async (userId: string) => {
-  try {
-    const subscription = await getUserSubscription(userId);
-    if (subscription && subscription.id) {
-      await updateUserSubscription(subscription.id, {
-        bookingsUsed: subscription.bookingsUsed + 1
-      });
-    }
-  } catch (error) {
-    console.error('Error incrementing booking count:', error);
-    throw error;
-  }
-};
+// incrementBookingCount function removed - now handled server-side via API
+// to avoid permission issues when updating another user's subscription
 
 export const checkBookingLimit = async (userId: string): Promise<{ canBook: boolean; currentUsage: number; limit: number; tier: SubscriptionTier | null }> => {
   try {
@@ -621,10 +610,26 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt
       updatedAt: serverTimestamp(),
     });
 
-    // Increment booking count for the bar owner
+    // Increment booking count for the bar owner via server-side API
     if (barDoc.exists()) {
       const barData = barDoc.data();
-      await incrementBookingCount(barData.ownerId);
+      try {
+        const response = await fetch('/api/increment-booking-count', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: barData.ownerId }),
+        });
+
+        if (!response.ok) {
+          console.warn('Failed to increment booking count:', await response.text());
+          // Don't throw error - booking was created successfully
+        }
+      } catch (error) {
+        console.warn('Error calling increment booking count API:', error);
+        // Don't throw error - booking was created successfully
+      }
     }
 
     return { id: docRef.id, ...bookingData };

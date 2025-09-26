@@ -50,10 +50,19 @@ service cloud.firestore {
       allow read: if request.auth != null ||
       // Allow server-side operations (webhooks, API functions) - no auth required
       request.auth == null;
-      allow write: if request.auth != null && (
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId ||
+      // Allow server-side operations (webhooks, API functions) - no auth required
+      request.auth == null;
+      allow update: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
       ) || 
+      // Allow server-side operations (webhooks, API functions) - no auth required
+      request.auth == null;
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
+      ) ||
       // Allow server-side operations (webhooks, API functions) - no auth required
       request.auth == null;
     }
