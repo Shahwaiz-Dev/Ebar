@@ -613,6 +613,7 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt
     // Increment booking count for the bar owner via server-side API
     if (barDoc.exists()) {
       const barData = barDoc.data();
+      console.log('Attempting to increment booking count for bar owner:', barData.ownerId);
       try {
         const response = await fetch('/api/increment-booking-count', {
           method: 'POST',
@@ -623,11 +624,15 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt
         });
 
         if (!response.ok) {
-          console.warn('Failed to increment booking count:', await response.text());
+          const errorText = await response.text();
+          console.error('Failed to increment booking count:', response.status, errorText);
           // Don't throw error - booking was created successfully
+        } else {
+          const result = await response.json();
+          console.log('Successfully incremented booking count:', result);
         }
       } catch (error) {
-        console.warn('Error calling increment booking count API:', error);
+        console.error('Error calling increment booking count API:', error);
         // Don't throw error - booking was created successfully
       }
     }
