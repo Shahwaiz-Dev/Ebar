@@ -24,7 +24,7 @@ A modern, responsive web application for discovering and booking beach bars arou
 - **Analytics**: Revenue tracking, booking trends, and performance metrics
 - **Customer Management**: View customer details and preferences
 
-## 🚀 Tech Stack
+
 
 ### Frontend
 - **React 18** - Modern React with hooks and concurrent features
