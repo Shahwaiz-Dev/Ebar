@@ -241,13 +241,13 @@ export const BookingHistoryPage = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
-              <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
-              <TabsTrigger value="bookings" className="text-xs sm:text-sm">Bookings</TabsTrigger>
-              <TabsTrigger value="orders" className="text-xs sm:text-sm">Orders</TabsTrigger>
-              <TabsTrigger value="pending" className="text-xs sm:text-sm">Pending</TabsTrigger>
-              <TabsTrigger value="confirmed" className="text-xs sm:text-sm">Confirmed</TabsTrigger>
-              <TabsTrigger value="completed" className="text-xs sm:text-sm">Completed</TabsTrigger>
+            <TabsList className="flex flex-wrap w-full">
+              <TabsTrigger value="all" className="text-xs sm:text-sm flex-1">All</TabsTrigger>
+              <TabsTrigger value="bookings" className="text-xs sm:text-sm flex-1">Bookings</TabsTrigger>
+              <TabsTrigger value="orders" className="text-xs sm:text-sm flex-1">Orders</TabsTrigger>
+              <TabsTrigger value="pending" className="text-xs sm:text-sm flex-1">Pending</TabsTrigger>
+              <TabsTrigger value="confirmed" className="text-xs sm:text-sm flex-1">Confirmed</TabsTrigger>
+              <TabsTrigger value="completed" className="text-xs sm:text-sm flex-1">Completed</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
