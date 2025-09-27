@@ -188,52 +188,52 @@ export const BookingHistoryPage = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                    <p className="text-2xl font-bold">{bookings.length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Bookings</p>
+                    <p className="text-lg sm:text-2xl font-bold">{bookings.length}</p>
                   </div>
-                  <Receipt className="h-8 w-8 text-primary" />
+                  <Receipt className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                    <p className="text-2xl font-bold">{orders.length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Orders</p>
+                    <p className="text-lg sm:text-2xl font-bold">{orders.length}</p>
                   </div>
-                  <ShoppingCart className="h-8 w-8 text-blue-600" />
+                  <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Completed</p>
+                    <p className="text-lg sm:text-2xl font-bold text-green-600">
                       {bookings.filter(b => b.status === 'completed').length + orders.filter(o => o.status === 'completed').length}
                     </p>
                   </div>
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+                  <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Spent</p>
-                    <p className="text-2xl font-bold text-primary">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Spent</p>
+                    <p className="text-lg sm:text-2xl font-bold text-primary">
                       €{bookings.reduce((sum, b) => sum + b.total, 0) + orders.reduce((sum, o) => sum + o.total, 0)}
                     </p>
                   </div>
-                  <Receipt className="h-8 w-8 text-primary" />
+                  <Receipt className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
@@ -241,13 +241,13 @@ export const BookingHistoryPage = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="bookings">Bookings</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="confirmed">Confirmed</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+              <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
+              <TabsTrigger value="bookings" className="text-xs sm:text-sm">Bookings</TabsTrigger>
+              <TabsTrigger value="orders" className="text-xs sm:text-sm">Orders</TabsTrigger>
+              <TabsTrigger value="pending" className="text-xs sm:text-sm">Pending</TabsTrigger>
+              <TabsTrigger value="confirmed" className="text-xs sm:text-sm">Confirmed</TabsTrigger>
+              <TabsTrigger value="completed" className="text-xs sm:text-sm">Completed</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">

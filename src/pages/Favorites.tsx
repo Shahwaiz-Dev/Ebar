@@ -188,7 +188,7 @@ export const FavoritesPage = () => {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between mt-auto">
+                    <div className="mt-auto space-y-3">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <div className="flex items-center">
                           <Sun className="h-3 w-3 mr-1" />
@@ -199,7 +199,7 @@ export const FavoritesPage = () => {
                           <span>{bar.umbrellas.filter(u => u.available).length}</span>
                         </div>
                       </div>
-                      <Button variant="sunset" size="sm" className="text-xs">
+                      <Button variant="sunset" size="sm" className="text-xs w-full">
                         Book Now
                       </Button>
                     </div>

@@ -291,7 +291,7 @@ export const BookingPage = () => {
                           <p className="text-muted-foreground text-sm mb-3 line-clamp-2 flex-1">
                             {bar.description}
                           </p>
-                          <div className="flex items-center justify-between mt-auto">
+                          <div className="mt-auto space-y-3">
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <div className="flex items-center">
                                 <Sun className="h-3 w-3 mr-1" />
@@ -302,10 +302,11 @@ export const BookingPage = () => {
                                 <span>{bar.umbrellas.filter(u => u.available).length} available</span>
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2">
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                className="flex-1"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   navigate(`/bar-details/${bar.id}`);
@@ -313,7 +314,7 @@ export const BookingPage = () => {
                               >
                                 View Details
                               </Button>
-                              <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-white">
+                              <Button variant="outline" size="sm" className="flex-1 group-hover:bg-primary group-hover:text-white">
                                 Select Bar
                               </Button>
                             </div>

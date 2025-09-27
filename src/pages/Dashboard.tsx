@@ -388,7 +388,7 @@ export const DashboardPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 overflow-x-auto">
                   <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
                   <TabsTrigger value="subscription" className="text-xs sm:text-sm">Subscription</TabsTrigger>
                   <TabsTrigger value="bookings" className="text-xs sm:text-sm">Bookings</TabsTrigger>

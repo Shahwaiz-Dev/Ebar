@@ -81,7 +81,7 @@ const getWelcomeEmailTemplate = (data: WelcomeEmailData) => {
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-        <a href="https://yourdomain.com/search" style="background-color: #f59e0b; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Start Exploring</a>
+        <a href="https://ebar.vercel.app/search" style="background-color: #f59e0b; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Start Exploring</a>
     </div>
     
     <div style="text-align: center; color: #666; font-size: 14px;">
@@ -143,7 +143,7 @@ const getBookingConfirmationTemplate = (data: BookingEmailData) => {
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-        <a href="https://yourdomain.com/booking-history" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Booking</a>
+        <a href="https://ebar.vercel.app/booking-history" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Booking</a>
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -192,7 +192,7 @@ const getAccountDeletionTemplate = (data: AccountDeletionEmailData) => {
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-        <a href="https://yourdomain.com/auth" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Create New Account</a>
+        <a href="https://ebar.vercel.app/auth" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Create New Account</a>
     </div>
     
     <div style="text-align: center; color: #666; font-size: 14px;">
@@ -235,7 +235,7 @@ const getBarVerificationTemplate = (data: BarVerificationEmailData) => {
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-        <a href="https://yourdomain.com/dashboard" style="background-color: #16a34a; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Manage Your Bar</a>
+        <a href="https://ebar.vercel.app/dashboard" style="background-color: #16a34a; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Manage Your Bar</a>
     </div>
     
     <div style="text-align: center; color: #666; font-size: 14px;">
@@ -274,7 +274,7 @@ const getBarVerificationTemplate = (data: BarVerificationEmailData) => {
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-        <a href="https://yourdomain.com/dashboard" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Update Bar Information</a>
+        <a href="https://ebar.vercel.app/dashboard" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Update Bar Information</a>
     </div>
     
     <div style="text-align: center; color: #666; font-size: 14px;">
