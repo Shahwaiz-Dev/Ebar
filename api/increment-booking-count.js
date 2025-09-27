@@ -3,12 +3,12 @@ import { getFirestore, collection, query, where, getDocs, updateDoc, serverTimes
 
 // Initialize Firebase (server-side)
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: "AIzaSyCoaxqngH8sPXfMb5ecVOz6mdSEYYNLMoM",
+  authDomain: "barweb-2cb4c.firebaseapp.com",
+  projectId: "barweb-2cb4c",
+  storageBucket: "barweb-2cb4c.firebasestorage.app",
+  messagingSenderId: "715821711318",
+  appId: "1:715821711318:web:43235b10b576777b016e77"
 };
 
 // Initialize Firebase app if it doesn't exist
@@ -43,9 +43,49 @@ export default async function handler(req, res) {
     const subscriptionQuery = await getDocs(q);
     console.log('Found subscriptions:', subscriptionQuery.size);
 
+    // If no active subscription found, try to find any subscription for this user
     if (subscriptionQuery.empty) {
-      console.log(`No active subscription found for user ${userId}`);
-      return res.status(200).json({ message: 'No active subscription found' });
+      console.log(`No active subscription found for user ${userId}, checking for any subscription...`);
+      const allSubscriptionsQuery = query(
+        subscriptionsRef,
+        where('userId', '==', userId)
+      );
+      const allSubscriptions = await getDocs(allSubscriptionsQuery);
+      console.log('Found total subscriptions for user:', allSubscriptions.size);
+      
+      if (allSubscriptions.size > 0) {
+        allSubscriptions.forEach((doc, index) => {
+          console.log(`Subscription ${index + 1}:`, doc.data());
+        });
+      }
+      
+      // If we found subscriptions but none are active, try to use the first one anyway
+      if (allSubscriptions.size > 0) {
+        console.log('No active subscription found, but using the first available subscription...');
+        const firstSubscription = allSubscriptions.docs[0];
+        const subscriptionData = firstSubscription.data();
+        console.log('Using subscription data:', subscriptionData);
+        
+        const newBookingCount = (subscriptionData.bookingsUsed || 0) + 1;
+        console.log(`Incrementing booking count from ${subscriptionData.bookingsUsed || 0} to ${newBookingCount}`);
+        
+        await updateDoc(firstSubscription.ref, {
+          bookingsUsed: newBookingCount,
+          updatedAt: serverTimestamp()
+        });
+        
+        console.log(`Successfully incremented booking count for user ${userId} to ${newBookingCount} (using non-active subscription)`);
+        return res.status(200).json({ 
+          success: true, 
+          bookingsUsed: newBookingCount,
+          message: 'Used non-active subscription'
+        });
+      }
+      
+      return res.status(200).json({ 
+        message: 'No subscription found',
+        totalSubscriptions: allSubscriptions.size
+      });
     }
 
     const subscriptionDoc = subscriptionQuery.docs[0];

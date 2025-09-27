@@ -623,6 +623,8 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt
           body: JSON.stringify({ userId: barData.ownerId }),
         });
 
+        console.log('Increment booking count response status:', response.status);
+        
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Failed to increment booking count:', response.status, errorText);
