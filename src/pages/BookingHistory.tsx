@@ -310,8 +310,20 @@ export const BookingHistoryPage = () => {
               </Button>
             </div>
 
+            {/* Tablet - scrollable without arrows */}
+            <div className="hidden sm:block lg:hidden overflow-x-auto scrollbar-hide">
+              <TabsList className="flex w-max min-w-full">
+                <TabsTrigger value="all" className="text-sm flex-1">All</TabsTrigger>
+                <TabsTrigger value="bookings" className="text-sm flex-1">Bookings</TabsTrigger>
+                <TabsTrigger value="orders" className="text-sm flex-1">Orders</TabsTrigger>
+                <TabsTrigger value="pending" className="text-sm flex-1">Pending</TabsTrigger>
+                <TabsTrigger value="confirmed" className="text-sm flex-1">Confirmed</TabsTrigger>
+                <TabsTrigger value="completed" className="text-sm flex-1">Completed</TabsTrigger>
+              </TabsList>
+            </div>
+
             {/* Desktop tabs */}
-            <TabsList className="hidden sm:flex w-full">
+            <TabsList className="hidden lg:flex w-full">
               <TabsTrigger value="all" className="text-sm flex-1">All</TabsTrigger>
               <TabsTrigger value="bookings" className="text-sm flex-1">Bookings</TabsTrigger>
               <TabsTrigger value="orders" className="text-sm flex-1">Orders</TabsTrigger>

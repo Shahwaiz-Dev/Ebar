@@ -458,8 +458,28 @@ export const DashboardPage = () => {
                   </Button>
                 </div>
 
-                {/* Tablet and Desktop tabs */}
-                <TabsList className="hidden sm:grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+                {/* Tablet - scrollable without arrows */}
+                <div className="hidden sm:block lg:hidden overflow-x-auto scrollbar-hide">
+                  <TabsList className="flex w-max min-w-full">
+                    <TabsTrigger value="overview" className="text-sm flex-1">Overview</TabsTrigger>
+                    <TabsTrigger value="subscription" className="text-sm flex-1">Subscription</TabsTrigger>
+                    <TabsTrigger value="bookings" className="text-sm flex-1">Bookings</TabsTrigger>
+                    <TabsTrigger value="analytics" className="text-sm flex-1">
+                      Analytics
+                      {!hasAdvancedAnalytics && <Lock className="h-3 w-3 ml-1" />}
+                    </TabsTrigger>
+                    <TabsTrigger value="qr-codes" className="text-sm flex-1">QR Codes</TabsTrigger>
+                    <TabsTrigger value="menu" className="text-sm flex-1">Menu</TabsTrigger>
+                    <TabsTrigger value="payments" className="text-sm flex-1">
+                      Payments
+                      {!hasPaymentManagement && <Lock className="h-3 w-3 ml-1" />}
+                    </TabsTrigger>
+                    <TabsTrigger value="settings" className="text-sm flex-1">Settings</TabsTrigger>
+                  </TabsList>
+                </div>
+
+                {/* Desktop tabs */}
+                <TabsList className="hidden lg:grid w-full grid-cols-8">
                   <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
                   <TabsTrigger value="subscription" className="text-sm">Subscription</TabsTrigger>
                   <TabsTrigger value="bookings" className="text-sm">Bookings</TabsTrigger>
