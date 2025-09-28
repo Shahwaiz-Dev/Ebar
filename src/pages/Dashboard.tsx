@@ -21,7 +21,8 @@ import {
   Phone,
   Mail,
   LogOut,
-  Lock
+  Lock,
+  ArrowLeft
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -251,7 +252,26 @@ export const DashboardPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Dashboard Header */}
           <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Mobile Navigation Header */}
+            <div className="flex items-center justify-between mb-4 sm:hidden">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/')}
+                className="p-2"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-lg font-bold text-foreground">
+                Dashboard
+              </h1>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="p-2">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Desktop Header */}
+            <div className="hidden sm:flex sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                   Welcome back, {currentUser.firstName}!

@@ -15,7 +15,8 @@ import {
   XCircle,
   Clock as ClockIcon,
   Loader2,
-  ShoppingCart
+  ShoppingCart,
+  Plus
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -168,22 +169,48 @@ export const BookingHistoryPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')} 
-              className="mb-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-            
-            <div className="text-center">
-              <h1 className="text-4xl lg:text-5xl font-playfair font-bold text-foreground mb-4">
-                Booking <span className="text-gradient">History</span>
+            {/* Mobile Navigation Header */}
+            <div className="flex items-center justify-between mb-4 sm:hidden">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/')}
+                className="p-2"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-lg font-bold text-foreground">
+                Booking History
               </h1>
-              <p className="text-lg text-muted-foreground">
-                View and manage your beach bar bookings
-              </p>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/search')}
+                className="p-2"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Desktop Header */}
+            <div className="hidden sm:block">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/')}
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+              
+              <div className="text-center">
+                <h1 className="text-4xl lg:text-5xl font-playfair font-bold text-foreground mb-4">
+                  Booking <span className="text-gradient">History</span>
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  View and manage your beach bar bookings
+                </p>
+              </div>
             </div>
           </div>
 
