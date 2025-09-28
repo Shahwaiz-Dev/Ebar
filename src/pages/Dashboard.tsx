@@ -410,8 +410,8 @@ export const DashboardPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                {/* Tabs with scroll arrows for mobile */}
-                <div className="relative flex items-center lg:hidden">
+                {/* Tabs with scroll arrows for mobile only */}
+                <div className="relative flex items-center sm:hidden">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -458,8 +458,8 @@ export const DashboardPage = () => {
                   </Button>
                 </div>
 
-                {/* Desktop tabs */}
-                <TabsList className="hidden lg:grid w-full grid-cols-8">
+                {/* Tablet and Desktop tabs */}
+                <TabsList className="hidden sm:grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
                   <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
                   <TabsTrigger value="subscription" className="text-sm">Subscription</TabsTrigger>
                   <TabsTrigger value="bookings" className="text-sm">Bookings</TabsTrigger>
