@@ -33,6 +33,7 @@ interface OrderData {
   }>;
   total: number;
   type?: 'booking' | 'qr-menu' | 'order';
+  bookingData?: any; // Booking data to create after successful payment
 }
 
 export const PaymentPage = () => {
@@ -56,6 +57,24 @@ export const PaymentPage = () => {
     }
   }, [navigate]);
 
+  // Cleanup function to handle page unload without payment completion
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (orderData && !isSuccess) {
+        // Warn user they're leaving without completing payment
+        event.preventDefault();
+        event.returnValue = 'You have an incomplete booking. Are you sure you want to leave?';
+        return event.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [orderData, isSuccess]);
+
   const fetchBarData = async (barId: number) => {
     setIsLoadingBar(true);
     try {
@@ -69,8 +88,21 @@ export const PaymentPage = () => {
     }
   };
 
-  const handlePaymentSuccess = (paymentId: string) => {
+  const handlePaymentSuccess = async (paymentId: string) => {
     console.log('Payment successful with ID:', paymentId);
+    
+    // Create the booking now that payment is successful
+    if (orderData?.bookingData) {
+      try {
+        const { createBooking } = await import('@/lib/firestore');
+        await createBooking(orderData.bookingData);
+        console.log('Booking created successfully after payment');
+        toast.success('Booking confirmed! You will receive a confirmation email.');
+      } catch (error) {
+        console.error('Error creating booking after payment:', error);
+        toast.error('Payment successful but booking creation failed. Please contact support.');
+      }
+    }
     
     // Send email receipt
     sendEmailReceipt(paymentId);
@@ -83,8 +115,15 @@ export const PaymentPage = () => {
   };
 
   const handlePaymentError = (error: string) => {
+    console.log('Payment failed:', error);
+    
+    // Since payment failed, no booking should be created
+    // The booking data remains in localStorage so user can try again
     toast.error(error || 'Payment failed. Please try again.');
     setIsProcessing(false);
+    
+    // Optionally, you could clear sensitive payment data here
+    // but keep the booking data for retry
   };
 
   const sendEmailReceipt = (paymentId: string) => {

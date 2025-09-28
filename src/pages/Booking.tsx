@@ -85,7 +85,7 @@ export const BookingPage = () => {
     return selectedItems.reduce((total, item) => total + item.price, 0);
   };
 
-  const handleCreateBooking = async () => {
+  const handleProceedToPayment = async () => {
     if (!currentUser) {
       toast.error('Please log in to make a booking');
       navigate('/auth');
@@ -107,6 +107,7 @@ export const BookingPage = () => {
       return;
     }
 
+    // Prepare booking data but don't create the booking yet
     const bookingData = {
       userId: currentUser.uid,
       barId: selectedBar.id,
@@ -128,38 +129,35 @@ export const BookingPage = () => {
       status: 'pending' as const,
     };
 
-    try {
-      const result = await createBookingMutation.mutateAsync(bookingData);
-      toast.success('Booking created successfully! Proceeding to payment.');
-      
-      // Store order data for payment page
-      const orderData = {
-        barId: selectedBar.id,
-        barName: selectedBar.name,
-        date: selectedDate,
-        time: selectedTime,
-        spotId: selectedItems[0]?.id,
-        sunbedNumber: selectedItems[0]?.category === 'sunbed' ? selectedItems[0]?.id : undefined,
-        umbrellaNumber: selectedItems[0]?.category === 'umbrella' ? selectedItems[0]?.id : undefined,
-        items: selectedItems.map(item => ({
-          id: item.id,
-          name: item.type,
-          price: item.price,
-          quantity: 1,
-          category: item.category
-        })),
-        total: getTotalPrice(),
-        type: 'booking'
-      };
-      
-      // Save order data to localStorage for the payment page
-      localStorage.setItem('currentOrder', JSON.stringify(orderData));
-      
-      // Navigate to payment page
-      navigate('/payment');
-    } catch (error) {
-      toast.error('Failed to create booking. Please try again.');
-    }
+    // Store both order data and booking data for payment page
+    const orderData = {
+      barId: selectedBar.id,
+      barName: selectedBar.name,
+      date: selectedDate,
+      time: selectedTime,
+      spotId: selectedItems[0]?.id,
+      sunbedNumber: selectedItems[0]?.category === 'sunbed' ? selectedItems[0]?.id : undefined,
+      umbrellaNumber: selectedItems[0]?.category === 'umbrella' ? selectedItems[0]?.id : undefined,
+      items: selectedItems.map(item => ({
+        id: item.id,
+        name: item.type,
+        price: item.price,
+        quantity: 1,
+        category: item.category
+      })),
+      total: getTotalPrice(),
+      type: 'booking',
+      // Store the complete booking data to create after payment
+      bookingData
+    };
+
+    // Save order data to localStorage for the payment page
+    localStorage.setItem('currentOrder', JSON.stringify(orderData));
+    
+    toast.success('Proceeding to payment...');
+    
+    // Navigate to payment page
+    navigate('/payment');
   };
 
   const isItemSelected = (itemId: string) => {
@@ -545,7 +543,7 @@ export const BookingPage = () => {
                   </Card>
 
                   <Button
-                    onClick={handleCreateBooking}
+                    onClick={handleProceedToPayment}
                     disabled={selectedItems.length === 0 || !selectedDate || !selectedTime || !customerName || !customerEmail || !customerPhone}
                     className="w-full"
                     size="lg"
