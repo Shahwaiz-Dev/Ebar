@@ -16,7 +16,9 @@ import {
   Clock as ClockIcon,
   Loader2,
   ShoppingCart,
-  Plus
+  Plus,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -268,13 +270,54 @@ export const BookingHistoryPage = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="flex flex-wrap w-full">
-              <TabsTrigger value="all" className="text-xs sm:text-sm flex-1">All</TabsTrigger>
-              <TabsTrigger value="bookings" className="text-xs sm:text-sm flex-1">Bookings</TabsTrigger>
-              <TabsTrigger value="orders" className="text-xs sm:text-sm flex-1">Orders</TabsTrigger>
-              <TabsTrigger value="pending" className="text-xs sm:text-sm flex-1">Pending</TabsTrigger>
-              <TabsTrigger value="confirmed" className="text-xs sm:text-sm flex-1">Confirmed</TabsTrigger>
-              <TabsTrigger value="completed" className="text-xs sm:text-sm flex-1">Completed</TabsTrigger>
+            {/* Tabs with scroll arrows for mobile */}
+            <div className="relative flex items-center sm:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute left-0 z-10 h-10 w-10 p-0 bg-white/90 backdrop-blur-sm shadow-sm"
+                onClick={() => {
+                  const tabsList = document.querySelector('.tabs-scroll-container-history');
+                  if (tabsList) {
+                    tabsList.scrollBy({ left: -150, behavior: 'smooth' });
+                  }
+                }}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="tabs-scroll-container-history overflow-x-auto scrollbar-hide mx-12">
+                <TabsList className="flex w-max">
+                  <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+                  <TabsTrigger value="bookings" className="text-xs">Bookings</TabsTrigger>
+                  <TabsTrigger value="orders" className="text-xs">Orders</TabsTrigger>
+                  <TabsTrigger value="pending" className="text-xs">Pending</TabsTrigger>
+                  <TabsTrigger value="confirmed" className="text-xs">Confirmed</TabsTrigger>
+                  <TabsTrigger value="completed" className="text-xs">Completed</TabsTrigger>
+                </TabsList>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 z-10 h-10 w-10 p-0 bg-white/90 backdrop-blur-sm shadow-sm"
+                onClick={() => {
+                  const tabsList = document.querySelector('.tabs-scroll-container-history');
+                  if (tabsList) {
+                    tabsList.scrollBy({ left: 150, behavior: 'smooth' });
+                  }
+                }}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Desktop tabs */}
+            <TabsList className="hidden sm:flex w-full">
+              <TabsTrigger value="all" className="text-sm flex-1">All</TabsTrigger>
+              <TabsTrigger value="bookings" className="text-sm flex-1">Bookings</TabsTrigger>
+              <TabsTrigger value="orders" className="text-sm flex-1">Orders</TabsTrigger>
+              <TabsTrigger value="pending" className="text-sm flex-1">Pending</TabsTrigger>
+              <TabsTrigger value="confirmed" className="text-sm flex-1">Confirmed</TabsTrigger>
+              <TabsTrigger value="completed" className="text-sm flex-1">Completed</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">

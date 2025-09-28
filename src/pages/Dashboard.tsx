@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,9 @@ import {
   Mail,
   LogOut,
   Lock,
-  ArrowLeft
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -408,21 +410,70 @@ export const DashboardPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 overflow-x-auto">
-                  <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
-                  <TabsTrigger value="subscription" className="text-xs sm:text-sm">Subscription</TabsTrigger>
-                  <TabsTrigger value="bookings" className="text-xs sm:text-sm">Bookings</TabsTrigger>
-                  <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+                {/* Tabs with scroll arrows for mobile */}
+                <div className="relative flex items-center lg:hidden">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute left-0 z-10 h-10 w-10 p-0 bg-white/90 backdrop-blur-sm shadow-sm"
+                    onClick={() => {
+                      const tabsList = document.querySelector('.tabs-scroll-container');
+                      if (tabsList) {
+                        tabsList.scrollBy({ left: -200, behavior: 'smooth' });
+                      }
+                    }}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="tabs-scroll-container overflow-x-auto scrollbar-hide mx-12">
+                    <TabsList className="flex w-max">
+                      <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
+                      <TabsTrigger value="subscription" className="text-xs">Subscription</TabsTrigger>
+                      <TabsTrigger value="bookings" className="text-xs">Bookings</TabsTrigger>
+                      <TabsTrigger value="analytics" className="text-xs">
+                        Analytics
+                        {!hasAdvancedAnalytics && <Lock className="h-3 w-3 ml-1" />}
+                      </TabsTrigger>
+                      <TabsTrigger value="qr-codes" className="text-xs">QR Codes</TabsTrigger>
+                      <TabsTrigger value="menu" className="text-xs">Menu</TabsTrigger>
+                      <TabsTrigger value="payments" className="text-xs">
+                        Payments
+                        {!hasPaymentManagement && <Lock className="h-3 w-3 ml-1" />}
+                      </TabsTrigger>
+                      <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
+                    </TabsList>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 z-10 h-10 w-10 p-0 bg-white/90 backdrop-blur-sm shadow-sm"
+                    onClick={() => {
+                      const tabsList = document.querySelector('.tabs-scroll-container');
+                      if (tabsList) {
+                        tabsList.scrollBy({ left: 200, behavior: 'smooth' });
+                      }
+                    }}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Desktop tabs */}
+                <TabsList className="hidden lg:grid w-full grid-cols-8">
+                  <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
+                  <TabsTrigger value="subscription" className="text-sm">Subscription</TabsTrigger>
+                  <TabsTrigger value="bookings" className="text-sm">Bookings</TabsTrigger>
+                  <TabsTrigger value="analytics" className="text-sm">
                     Analytics
                     {!hasAdvancedAnalytics && <Lock className="h-3 w-3 ml-1" />}
                   </TabsTrigger>
-                  <TabsTrigger value="qr-codes" className="text-xs sm:text-sm">QR Codes</TabsTrigger>
-                  <TabsTrigger value="menu" className="text-xs sm:text-sm">Menu</TabsTrigger>
-                  <TabsTrigger value="payments" className="text-xs sm:text-sm">
+                  <TabsTrigger value="qr-codes" className="text-sm">QR Codes</TabsTrigger>
+                  <TabsTrigger value="menu" className="text-sm">Menu</TabsTrigger>
+                  <TabsTrigger value="payments" className="text-sm">
                     Payments
                     {!hasPaymentManagement && <Lock className="h-3 w-3 ml-1" />}
                   </TabsTrigger>
-                  <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
+                  <TabsTrigger value="settings" className="text-sm">Settings</TabsTrigger>
                 </TabsList>
 
                 {/* Overview Tab */}
